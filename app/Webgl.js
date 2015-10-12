@@ -4,11 +4,14 @@ import Cube from './objects/Cube';
 import THREE from 'three';
 window.THREE = THREE;
 
-var light;
+var light,
+    nbCube = 3,
+    objects = [];
 
 export default class Webgl {
   constructor(width, height) {
     this.scene = new THREE.Scene();
+
 
     this.camera = new THREE.PerspectiveCamera(50, width / height, 1, 1000);
     this.camera.position.z = 100;
@@ -28,9 +31,25 @@ export default class Webgl {
     this.composer.setSize(width, height);
     this.initPostprocessing();
 
-    this.cube = new Cube();
-    this.cube.position.set(0, 0, 0);
-    this.scene.add(this.cube);
+    for (var j = 0; j < nbCube; j ++) {
+      this.cube = new Cube();
+
+      if (j == 0) {
+        this.cube.position.set(0, 0, 0);
+      } else if (j == 1 || j == 3) {
+        this.cube.position.x = -120;
+      } else if  (j == 2 || j == 4) {
+        this.cube.position.x = 120;
+      } else if  (j == 1 || j == 2) {
+        this.cube.position.z = -120;
+      } else if (j == 3 || j == 4) {
+        this.cube.position.z = 120;
+      }
+      
+      objects.push(this.cube);
+      this.cube.doubleSided = true;
+      this.scene.add(this.cube);
+    }
   }
 
   initPostprocessing() {
@@ -60,7 +79,13 @@ export default class Webgl {
       this.renderer.clear();
       this.renderer.render(this.scene, this.camera, this.light);
     }
-
-    this.cube.update();
+    for (var j = 0; j < nbCube; j ++) {
+      if (j == 0) {
+        objects[j].update(average, 'low');
+      } else {
+        objects[j].update(average, 'high');
+      }
+      
+    }
   }
 }

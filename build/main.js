@@ -21,7 +21,9 @@ var _three2 = _interopRequireDefault(_three);
 
 window.THREE = _three2['default'];
 
-var light;
+var light,
+    nbCube = 3,
+    objects = [];
 
 var Webgl = (function () {
   function Webgl(width, height) {
@@ -47,9 +49,25 @@ var Webgl = (function () {
     this.composer.setSize(width, height);
     this.initPostprocessing();
 
-    this.cube = new _objectsCube2['default']();
-    this.cube.position.set(0, 0, 0);
-    this.scene.add(this.cube);
+    for (var j = 0; j < nbCube; j++) {
+      this.cube = new _objectsCube2['default']();
+
+      if (j == 0) {
+        this.cube.position.set(0, 0, 0);
+      } else if (j == 1 || j == 3) {
+        this.cube.position.x = -120;
+      } else if (j == 2 || j == 4) {
+        this.cube.position.x = 120;
+      } else if (j == 1 || j == 2) {
+        this.cube.position.z = -120;
+      } else if (j == 3 || j == 4) {
+        this.cube.position.z = 120;
+      }
+
+      objects.push(this.cube);
+      this.cube.doubleSided = true;
+      this.scene.add(this.cube);
+    }
   }
 
   _createClass(Webgl, [{
@@ -83,8 +101,13 @@ var Webgl = (function () {
         this.renderer.clear();
         this.renderer.render(this.scene, this.camera, this.light);
       }
-
-      this.cube.update();
+      for (var j = 0; j < nbCube; j++) {
+        if (j == 0) {
+          objects[j].update(average, 'low');
+        } else {
+          objects[j].update(average, 'high');
+        }
+      }
     }
   }]);
 
@@ -143,7 +166,7 @@ function resizeHandler() {
 function animate() {
   (0, _raf2['default'])(animate);
 
-  webgl.render();
+  webgl.render(average);
 }
 
 },{"./Webgl":1,"dat-gui":4,"domready":7,"gsap":8,"raf":9}],3:[function(require,module,exports){
@@ -175,27 +198,88 @@ var Cube = (function (_THREE$Object3D) {
 
     _get(Object.getPrototypeOf(Cube.prototype), 'constructor', this).call(this);
     this.count = 0;
+    this.magnets = [];
 
-    this.geom = new _three2['default'].CubeGeometry(100, 5, 100);
+    // this.geom = new THREE.CubeGeometry( 100 , 5, 100 );
+    this.geom = new _three2['default'].SphereGeometry(25, 25, 25);
     this.mat = new _three2['default'].MeshPhongMaterial({ color: 0xf3f1ef });
     this.mesh = new _three2['default'].Mesh(this.geom, this.mat);
 
     this.add(this.mesh);
-    var maxVertices = this.geom.vertices.length;
-    console.log(this.geom.vertices[2]);
-    this.geom.vertices[1].z = 10;
-    this.geom.vertices[1].x = -2.5;
-    this.geom.vertices[1].y = 10;
+
+    // this.addMagnets ();
+    // this.distort ();
   }
 
   _createClass(Cube, [{
     key: 'update',
-    value: function update() {
-      this.deform();
+    value: function update(average, frequency) {
+      this.rotation.x += 0.01;
+      this.rotation.z += 0.01;
+
+      if (average != 0) {
+        this.scale.x = average * 0.01;
+        this.scale.y = average * 0.01;
+        this.scale.z = average * 0.01;
+      }
     }
   }, {
-    key: 'deform',
-    value: function deform() {}
+    key: 'distort',
+    value: function distort() {
+      var maxMagnets = this.magnets.length,
+          maxVertices = this.geom.vertices.length;
+
+      var magneticMaxValue = this.getDistance3d({ x: 0, y: 0, z: 0 }, { x: 6000, y: 6000, z: 6000 });
+      var strength = 6000,
+          factor = 6;
+
+      for (var i = 0; i < maxMagnets; i++) {
+        for (var vertexI = 0; vertexI < maxVertices; vertexI++) {
+          var magnet = this.magnets[i];
+          var vertex = this.geom.vertices[vertexI];
+
+          var distance = this.getDistance3d(magnet, vertex);
+          var power = magneticMaxValue / distance / strength;
+
+          vertex.x += (magnet.x - vertex.x) * power * factor;
+          vertex.y += (magnet.y - vertex.y) * power * factor;
+          vertex.z += (magnet.z - vertex.z) * power * factor;
+        }
+      }
+    }
+  }, {
+    key: 'addMagnets',
+    value: function addMagnets(vertex) {
+      var max = this.geom.vertices.length,
+          maxMagnets = 1;
+      for (var i = 1; i <= 1; i++) {
+        var index = Misc.getRandomInt(0, max - 1);
+        var vertex = this.geom.vertices[index];
+        var magnetI = this.magnets.length;
+        this.magnets[magnetI] = this.distortVertex({ x: vertex.x, y: vertex.y, z: vertex.z }, 10);
+        // this.showMagnet(this.magnets[magnetI]);
+      }
+
+      var magnetI = 0;
+      this.magnets[magnetI] = { x: 0, y: -10, z: -30 };
+      // this.showMagnet(this.magnets[magnetI]);
+    }
+  }, {
+    key: 'getDistance3d',
+    value: function getDistance3d(vertex1, vertex2) {
+      var xfactor = vertex2.x - vertex1.x;
+      var yfactor = vertex2.y - vertex1.y;
+      var zfactor = vertex2.z - vertex1.z;
+      return Math.sqrt(xfactor * xfactor + yfactor * yfactor + zfactor * zfactor);
+    }
+  }, {
+    key: 'distortVertex',
+    value: function distortVertex(vertex, distortion) {
+      vertex.x = Misc.distort(vertex.x, distortion);
+      vertex.y = Misc.distort(vertex.y, distortion);
+      vertex.z = Misc.distort(vertex.z, distortion);
+      return vertex;
+    }
   }]);
 
   return Cube;

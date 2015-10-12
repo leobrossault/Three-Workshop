@@ -23,6 +23,7 @@ domready(() => {
 
   // let's play !
   animate();
+
 });
 
 function resizeHandler() {
@@ -32,5 +33,5 @@ function resizeHandler() {
 function animate() {
   raf(animate);
 
-  webgl.render();
+  webgl.render(average);
 }
