@@ -19,6 +19,10 @@ var _objectsCubeEl = require('./objects/CubeEl');
 
 var _objectsCubeEl2 = _interopRequireDefault(_objectsCubeEl);
 
+var _objectsCubeElSecond = require('./objects/CubeElSecond');
+
+var _objectsCubeElSecond2 = _interopRequireDefault(_objectsCubeElSecond);
+
 var _objectsSphere = require('./objects/Sphere');
 
 var _objectsSphere2 = _interopRequireDefault(_objectsSphere);
@@ -40,10 +44,10 @@ var light,
     nbCubeEl = 2,
     objects = [],
     cubeElArray = [],
+    cubeElArraySecond = [],
     ts = 0,
     colors = [0x1C448E, 0x3E92CC, 0xFFAD05, 0xE8D7F1, 0xDB162F],
-    iColor = 0,
-    activeColor = 0;
+    iColor = 0;
 
 var Webgl = (function () {
   function Webgl(width, height) {
@@ -91,6 +95,26 @@ var Webgl = (function () {
 
       cubeElArray.push(this.cubeEl);
       this.scene.add(this.cubeEl);
+    }
+
+    /* CUBE EL SECOND */
+    for (var h = 0; h < nbCubeEl; h++) {
+      this.CubeElSecond = new _objectsCubeElSecond2['default']();
+
+      if (h == 0) {
+        this.CubeElSecond.position.y = -150;
+        this.CubeElSecond.position.x = -250;
+        this.CubeElSecond.rotation.z = 0.25 * Math.PI;
+      } else if (h == 1) {
+        this.CubeElSecond.position.y = 0;
+        this.CubeElSecond.position.x = 140;
+        this.CubeElSecond.rotation.z = 0.25 * Math.PI;
+      }
+
+      this.CubeElSecond.position.z = 0;
+
+      cubeElArraySecond.push(this.CubeElSecond);
+      this.scene.add(this.CubeElSecond);
     }
 
     /* SPHERE */
@@ -189,21 +213,16 @@ var Webgl = (function () {
         this.renderer.render(this.scene, this.camera, this.light);
       }
 
-      if (average < 60) {
+      if (average < 80) {
         iColor = 0;
-        activeColor = 1;
-      } else if (average < 120) {
+      } else if (average < 160) {
         iColor = 1;
-        activeColor = 1;
       } else if (average < 180) {
         iColor = 2;
-        activeColor = 1;
       } else if (average < 240) {
         iColor = 3;
-        activeColor = 1;
       } else if (average < 300) {
         iColor = 4;
-        activeColor = 1;
       }
 
       this.renderer.setClearColor(colors[iColor]);
@@ -221,8 +240,10 @@ var Webgl = (function () {
       for (var q = 0; q < nbCubeEl; q++) {
         if (q == 0) {
           cubeElArray[q].update(average, 'top');
+          cubeElArraySecond[q].update(average, 'top');
         } else {
           cubeElArray[q].update(average, 'bot');
+          cubeElArraySecond[q].update(average, 'bot');
         }
       }
 
@@ -259,7 +280,7 @@ var Webgl = (function () {
 exports['default'] = Webgl;
 module.exports = exports['default'];
 
-},{"./objects/Cube":3,"./objects/CubeEl":4,"./objects/Plane":5,"./objects/Sphere":6,"three":14}],2:[function(require,module,exports){
+},{"./objects/Cube":3,"./objects/CubeEl":4,"./objects/CubeElSecond":5,"./objects/Plane":6,"./objects/Sphere":7,"three":15}],2:[function(require,module,exports){
 'use strict';
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
@@ -311,7 +332,7 @@ function animate() {
   webgl.render(average, frequencys);
 }
 
-},{"./Webgl":1,"dat-gui":7,"domready":10,"gsap":11,"raf":12}],3:[function(require,module,exports){
+},{"./Webgl":1,"dat-gui":8,"domready":11,"gsap":12,"raf":13}],3:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -370,7 +391,7 @@ var Cube = (function (_THREE$Object3D) {
 exports['default'] = Cube;
 module.exports = exports['default'];
 
-},{"three":14}],4:[function(require,module,exports){
+},{"three":15}],4:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -458,7 +479,97 @@ var CubeEl = (function (_THREE$Object3D) {
 exports['default'] = CubeEl;
 module.exports = exports['default'];
 
-},{"three":14}],5:[function(require,module,exports){
+},{"three":15}],5:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var _three = require('three');
+
+var _three2 = _interopRequireDefault(_three);
+
+var CubeElSecond = (function (_THREE$Object3D) {
+  _inherits(CubeElSecond, _THREE$Object3D);
+
+  function CubeElSecond() {
+    _classCallCheck(this, CubeElSecond);
+
+    _get(Object.getPrototypeOf(CubeElSecond.prototype), 'constructor', this).call(this);
+    this.count = 0;
+    this.active = 0;
+    this.phase = 1;
+
+    this.geom = new _three2['default'].CubeGeometry(10, 4, 4);
+    this.mat = new _three2['default'].MeshBasicMaterial({ color: 0xf3f1ef });
+    this.mesh = new _three2['default'].Mesh(this.geom, this.mat);
+
+    this.add(this.mesh);
+  }
+
+  _createClass(CubeElSecond, [{
+    key: 'update',
+    value: function update(average, pos) {
+      if (average * 0.01 > 0.4 && average * 0.01 < 0.6) {
+        this.active = 1;
+      }
+
+      console.log('el second');
+
+      if (pos == 'top' && this.phase == 2) {
+        pos = 'bot';
+      } else if (this.phase == 2) {
+        pos = 'top';
+      }
+
+      if (pos == 'top' && this.active == 1) {
+        this.position.x += 5;
+        this.position.y += 5;
+
+        if (this.position.x == 140) {
+          this.active = 0;
+
+          if (this.phase == 2) {
+            this.phase = 1;
+          } else {
+            this.phase = 2;
+          }
+        }
+      } else if (pos == 'bot' && this.active == 1) {
+        this.position.x -= 5;
+        this.position.y -= 5;
+
+        if (this.position.x == -250) {
+          this.active = 0;
+
+          if (this.phase == 2) {
+            this.phase = 1;
+          } else {
+            this.phase = 2;
+          }
+        }
+      }
+    }
+  }]);
+
+  return CubeElSecond;
+})(_three2['default'].Object3D);
+
+exports['default'] = CubeElSecond;
+module.exports = exports['default'];
+
+},{"three":15}],6:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -507,7 +618,7 @@ var Cube = (function (_THREE$Object3D) {
 exports['default'] = Cube;
 module.exports = exports['default'];
 
-},{"three":14}],6:[function(require,module,exports){
+},{"three":15}],7:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -578,10 +689,10 @@ var Sphere = (function (_THREE$Object3D) {
 exports['default'] = Sphere;
 module.exports = exports['default'];
 
-},{"three":14}],7:[function(require,module,exports){
+},{"three":15}],8:[function(require,module,exports){
 module.exports = require('./vendor/dat.gui')
 module.exports.color = require('./vendor/dat.color')
-},{"./vendor/dat.color":8,"./vendor/dat.gui":9}],8:[function(require,module,exports){
+},{"./vendor/dat.color":9,"./vendor/dat.gui":10}],9:[function(require,module,exports){
 /**
  * dat-gui JavaScript Controller Library
  * http://code.google.com/p/dat-gui
@@ -1337,7 +1448,7 @@ dat.color.math = (function () {
 })(),
 dat.color.toString,
 dat.utils.common);
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 /**
  * dat-gui JavaScript Controller Library
  * http://code.google.com/p/dat-gui
@@ -4998,7 +5109,7 @@ dat.dom.CenteredDiv = (function (dom, common) {
 dat.utils.common),
 dat.dom.dom,
 dat.utils.common);
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 /*!
   * domready (c) Dustin Diaz 2014 - License MIT
   */
@@ -5030,7 +5141,7 @@ dat.utils.common);
 
 });
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 (function (global){
 /*!
  * VERSION: 1.18.0
@@ -12605,7 +12716,7 @@ if (_gsScope._gsDefine) { _gsScope._gsQueue.pop()(); } //necessary in case Tween
 
 })((typeof(module) !== "undefined" && module.exports && typeof(global) !== "undefined") ? global : this || window, "TweenMax");
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 var now = require('performance-now')
   , global = typeof window === 'undefined' ? {} : window
   , vendors = ['moz', 'webkit']
@@ -12675,7 +12786,7 @@ module.exports.cancel = function() {
   caf.apply(global, arguments)
 }
 
-},{"performance-now":13}],13:[function(require,module,exports){
+},{"performance-now":14}],14:[function(require,module,exports){
 (function (process){
 // Generated by CoffeeScript 1.7.1
 (function() {
@@ -12711,7 +12822,7 @@ module.exports.cancel = function() {
 }).call(this);
 
 }).call(this,require('_process'))
-},{"_process":15}],14:[function(require,module,exports){
+},{"_process":16}],15:[function(require,module,exports){
 var self = self || {};// File:src/Three.js
 
 /**
@@ -47859,7 +47970,7 @@ if (typeof exports !== 'undefined') {
   this['THREE'] = THREE;
 }
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};

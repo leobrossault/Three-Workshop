@@ -2,6 +2,7 @@
 
 import Cube from './objects/Cube';
 import CubeEl from './objects/CubeEl';
+import CubeElSecond from './objects/CubeElSecond';
 import Sphere from './objects/Sphere';
 // import Line from './objects/Line';
 import Plane from './objects/Plane';
@@ -13,10 +14,10 @@ var light,
     nbCubeEl = 2,
     objects = [],
     cubeElArray = [],
+    cubeElArraySecond = [],
     ts = 0,
     colors = [0x1C448E, 0x3E92CC, 0xFFAD05, 0xE8D7F1, 0xDB162F],
-    iColor = 0,
-    activeColor = 0;
+    iColor = 0;
 
 export default class Webgl {
   constructor(width, height) {
@@ -65,6 +66,27 @@ export default class Webgl {
       cubeElArray.push(this.cubeEl);
       this.scene.add(this.cubeEl);
     }
+
+    /* CUBE EL SECOND */
+    for (var h = 0; h < nbCubeEl; h ++) {
+      this.CubeElSecond = new CubeElSecond();
+
+      if (h == 0) {
+        this.CubeElSecond.position.y = -150;
+        this.CubeElSecond.position.x = -250;
+        this.CubeElSecond.rotation.z = 0.25 * Math.PI;    
+      } else if (h == 1) {
+        this.CubeElSecond.position.y = 0;
+        this.CubeElSecond.position.x = 140;
+        this.CubeElSecond.rotation.z = 0.25 * Math.PI;     
+      }
+
+      this.CubeElSecond.position.z = 0;  
+      
+
+      cubeElArraySecond.push(this.CubeElSecond);
+      this.scene.add(this.CubeElSecond);
+    } 
 
     /* SPHERE */
     for (var j = 0; j < nbSphere; j ++) {
@@ -162,21 +184,16 @@ export default class Webgl {
       this.renderer.render(this.scene, this.camera, this.light);
     }
 
-    if (average < 60) {
+    if (average < 80) {
       iColor = 0;
-      activeColor =1;
-    } else if (average < 120) {
+    } else if (average < 160) {
       iColor = 1;
-      activeColor =1;
     } else if (average < 180) {
       iColor = 2;
-      activeColor =1;
     } else if (average < 240) {
       iColor = 3;
-      activeColor =1;
     } else if (average < 300) {
       iColor = 4;
-      activeColor =1;
     }
 
     this.renderer.setClearColor(colors[iColor]);
@@ -194,8 +211,10 @@ export default class Webgl {
     for (var q = 0; q < nbCubeEl; q ++) {
       if (q == 0) {
         cubeElArray[q].update(average, 'top');
+        cubeElArraySecond[q].update(average, 'top');
       } else {
         cubeElArray[q].update(average, 'bot');
+        cubeElArraySecond[q].update(average, 'bot');
       }
     }
 
