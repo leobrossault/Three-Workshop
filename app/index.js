@@ -33,5 +33,5 @@ function resizeHandler() {
 function animate() {
   raf(animate);
 
-  webgl.render(average);
+  webgl.render(average, frequencys);
 }

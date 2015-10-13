@@ -15,6 +15,20 @@ var _objectsCube = require('./objects/Cube');
 
 var _objectsCube2 = _interopRequireDefault(_objectsCube);
 
+var _objectsCubeEl = require('./objects/CubeEl');
+
+var _objectsCubeEl2 = _interopRequireDefault(_objectsCubeEl);
+
+var _objectsSphere = require('./objects/Sphere');
+
+var _objectsSphere2 = _interopRequireDefault(_objectsSphere);
+
+// import Line from './objects/Line';
+
+var _objectsPlane = require('./objects/Plane');
+
+var _objectsPlane2 = _interopRequireDefault(_objectsPlane);
+
 var _three = require('three');
 
 var _three2 = _interopRequireDefault(_three);
@@ -22,8 +36,14 @@ var _three2 = _interopRequireDefault(_three);
 window.THREE = _three2['default'];
 
 var light,
-    nbCube = 3,
-    objects = [];
+    nbSphere = 2,
+    nbCubeEl = 2,
+    objects = [],
+    cubeElArray = [],
+    ts = 0,
+    colors = [0x1C448E, 0x3E92CC, 0xFFAD05, 0xE8D7F1, 0xDB162F],
+    iColor = 0,
+    activeColor = 0;
 
 var Webgl = (function () {
   function Webgl(width, height) {
@@ -42,40 +62,104 @@ var Webgl = (function () {
 
     this.renderer = new _three2['default'].WebGLRenderer();
     this.renderer.setSize(width, height);
-    this.renderer.setClearColor(0xDB162F);
+    this.renderer.setClearColor(colors[iColor]);
 
     this.usePostprocessing = true;
     this.composer = new WAGNER.Composer(this.renderer);
     this.composer.setSize(width, height);
     this.initPostprocessing();
 
-    for (var j = 0; j < nbCube; j++) {
-      this.cube = new _objectsCube2['default']();
+    /* CUBE CENTER */
+    this.cube = new _objectsCube2['default']();
+    this.cube.position.set(0, 0, 0);
 
-      if (j == 0) {
-        this.cube.position.set(0, 0, 0);
-      } else if (j == 1 || j == 3) {
-        this.cube.position.x = -120;
-      } else if (j == 2 || j == 4) {
-        this.cube.position.x = 120;
-      } else if (j == 1 || j == 2) {
-        this.cube.position.z = -120;
-      } else if (j == 3 || j == 4) {
-        this.cube.position.z = 120;
+    /* CUBE EL */
+    for (var m = 0; m < nbCubeEl; m++) {
+      this.cubeEl = new _objectsCubeEl2['default']();
+
+      if (m == 0) {
+        this.cubeEl.position.y = -200;
+        this.cubeEl.position.x = -200;
+        this.cubeEl.rotation.z = 0.28 * Math.PI;
+      } else if (m == 1) {
+        this.cubeEl.position.y = 100;
+        this.cubeEl.position.x = 100;
+        this.cubeEl.rotation.z = 0.28 * Math.PI;
       }
 
-      objects.push(this.cube);
-      this.cube.doubleSided = true;
-      this.scene.add(this.cube);
+      this.cubeEl.position.z = 0;
+
+      cubeElArray.push(this.cubeEl);
+      this.scene.add(this.cubeEl);
     }
+
+    /* SPHERE */
+    for (var j = 0; j < nbSphere; j++) {
+      this.sphere = new _objectsSphere2['default']();
+
+      if (j == 0) {
+        this.sphere.position.x = width / 20;
+      } else if (j == 1) {
+        this.sphere.position.x = -width / 20;
+      }
+
+      objects.push(this.sphere);
+      this.scene.add(this.sphere);
+    }
+
+    /* PARTICLES */
+
+    this.particleCount = 1800;
+    this.particles = new _three2['default'].Geometry();
+    this.pMaterial = new _three2['default'].ParticleBasicMaterial({
+      color: 0xFFFFFF,
+      size: 2,
+      map: _three2['default'].ImageUtils.loadTexture("app/particle.svg"),
+      blending: _three2['default'].AdditiveBlending,
+      transparent: true
+    });
+
+    for (var p = 0; p < this.particleCount; p++) {
+      this.pX = Math.random() * 500 - 250;
+      this.pY = Math.random() * 500 - 250;
+      this.pZ = Math.random() * 500 - 250;
+      this.particle = new _three2['default'].Vector3(this.pX, this.pY, this.pZ);
+
+      this.particles.vertices.push(this.particle);
+    }
+
+    this.particleSystem = new _three2['default'].ParticleSystem(this.particles, this.pMaterial);
+    this.particleSystem.sortParticles = true;
+
+    /* PLANE */
+    this.plane = new _objectsPlane2['default']();
+    this.plane.position.set(0, 0, 0);
+    this.plane.rotation.x = 0.5 * Math.PI;
+
+    /* WAVE */
+    // this.wave = new Line ();
+    // this.wave.position.set(0, 0, 0);
+
+    /* ADD */
+    // this.scene.add(this.cube);
+    this.addObjects();
   }
 
   _createClass(Webgl, [{
+    key: 'addObjects',
+    value: function addObjects() {
+      this.scene.add(this.plane);
+      this.scene.add(this.particleSystem);
+      // this.scene.add(this.wave);
+    }
+  }, {
     key: 'initPostprocessing',
     value: function initPostprocessing() {
       if (!this.usePostprocessing) return;
 
       this.vignette2Pass = new WAGNER.Vignette2Pass();
+      this.fxaaPass = new WAGNER.FXAAPass();
+      this.noisePass = new WAGNER.NoisePass();
     }
   }, {
     key: 'resize',
@@ -89,25 +173,83 @@ var Webgl = (function () {
     }
   }, {
     key: 'render',
-    value: function render() {
+    value: function render(average, frequencys) {
+      ts += 0.1;
       if (this.usePostprocessing) {
         this.composer.reset();
         this.composer.renderer.clear();
         this.composer.render(this.scene, this.camera);
         this.composer.pass(this.vignette2Pass);
+        this.composer.pass(this.noisePass);
+        this.composer.pass(this.fxaaPass);
         this.composer.toScreen();
       } else {
         this.renderer.autoClear = false;
         this.renderer.clear();
         this.renderer.render(this.scene, this.camera, this.light);
       }
-      for (var j = 0; j < nbCube; j++) {
+
+      if (average < 60) {
+        iColor = 0;
+        activeColor = 1;
+      } else if (average < 120) {
+        iColor = 1;
+        activeColor = 1;
+      } else if (average < 180) {
+        iColor = 2;
+        activeColor = 1;
+      } else if (average < 240) {
+        iColor = 3;
+        activeColor = 1;
+      } else if (average < 300) {
+        iColor = 4;
+        activeColor = 1;
+      }
+
+      this.renderer.setClearColor(colors[iColor]);
+
+      /* SPHERE SCALE */
+      for (var j = 0; j < nbSphere; j++) {
         if (j == 0) {
           objects[j].update(average, 'low');
         } else {
           objects[j].update(average, 'high');
         }
       }
+
+      /* ELEMENT TRANSLATION */
+      for (var q = 0; q < nbCubeEl; q++) {
+        if (q == 0) {
+          cubeElArray[q].update(average, 'top');
+        } else {
+          cubeElArray[q].update(average, 'bot');
+        }
+      }
+
+      /* WAVE */
+      for (var n = 0; n < this.plane.geom.vertices.length; n++) {
+        var vertice = this.plane.geom.vertices[n];
+        var dist = new _three2['default'].Vector2(vertice.x, vertice.y).sub(new _three2['default'].Vector2(0, 0));
+        var averageWave = average;
+
+        if (average > 30) {
+          averageWave = 30;
+        }
+
+        var amplitude = 0.2 * averageWave;
+        var size = 5.0;
+
+        vertice.z = Math.sin(dist.length() / -size + ts) * amplitude;
+        this.plane.geom.verticesNeedUpdate = true;
+      }
+
+      /* CUBE */
+      this.cube.rotation.x -= 0.01;
+      this.cube.rotation.y -= 0.01;
+
+      /* PARTICLE ROTATION */
+      this.particleSystem.rotation.y += 0.01;
+      this.particleSystem.rotation.z += 0.01;
     }
   }]);
 
@@ -117,7 +259,7 @@ var Webgl = (function () {
 exports['default'] = Webgl;
 module.exports = exports['default'];
 
-},{"./objects/Cube":3,"three":11}],2:[function(require,module,exports){
+},{"./objects/Cube":3,"./objects/CubeEl":4,"./objects/Plane":5,"./objects/Sphere":6,"three":14}],2:[function(require,module,exports){
 'use strict';
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
@@ -166,10 +308,10 @@ function resizeHandler() {
 function animate() {
   (0, _raf2['default'])(animate);
 
-  webgl.render(average);
+  webgl.render(average, frequencys);
 }
 
-},{"./Webgl":1,"dat-gui":4,"domready":7,"gsap":8,"raf":9}],3:[function(require,module,exports){
+},{"./Webgl":1,"dat-gui":7,"domready":10,"gsap":11,"raf":12}],3:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -198,87 +340,27 @@ var Cube = (function (_THREE$Object3D) {
 
     _get(Object.getPrototypeOf(Cube.prototype), 'constructor', this).call(this);
     this.count = 0;
-    this.magnets = [];
 
     // this.geom = new THREE.CubeGeometry( 100 , 5, 100 );
-    this.geom = new _three2['default'].SphereGeometry(25, 25, 25);
-    this.mat = new _three2['default'].MeshPhongMaterial({ color: 0xf3f1ef });
+    this.geom = new _three2['default'].CubeGeometry(25, 25, 25);
+    this.mat = new _three2['default'].MeshBasicMaterial({ color: 0xf3f1ef });
     this.mesh = new _three2['default'].Mesh(this.geom, this.mat);
 
     this.add(this.mesh);
-
-    // this.addMagnets ();
-    // this.distort ();
   }
 
   _createClass(Cube, [{
     key: 'update',
     value: function update(average, frequency) {
-      this.rotation.x += 0.01;
-      this.rotation.z += 0.01;
+      // this.rotation.x += 0.01;
+      // this.rotation.z += 0.01;
 
       if (average != 0) {
-        this.scale.x = average * 0.01;
-        this.scale.y = average * 0.01;
-        this.scale.z = average * 0.01;
+
+        // this.scale.x = average * 0.01;
+        // this.scale.y = average * 0.01;
+        // this.scale.z = average * 0.01;
       }
-    }
-  }, {
-    key: 'distort',
-    value: function distort() {
-      var maxMagnets = this.magnets.length,
-          maxVertices = this.geom.vertices.length;
-
-      var magneticMaxValue = this.getDistance3d({ x: 0, y: 0, z: 0 }, { x: 6000, y: 6000, z: 6000 });
-      var strength = 6000,
-          factor = 6;
-
-      for (var i = 0; i < maxMagnets; i++) {
-        for (var vertexI = 0; vertexI < maxVertices; vertexI++) {
-          var magnet = this.magnets[i];
-          var vertex = this.geom.vertices[vertexI];
-
-          var distance = this.getDistance3d(magnet, vertex);
-          var power = magneticMaxValue / distance / strength;
-
-          vertex.x += (magnet.x - vertex.x) * power * factor;
-          vertex.y += (magnet.y - vertex.y) * power * factor;
-          vertex.z += (magnet.z - vertex.z) * power * factor;
-        }
-      }
-    }
-  }, {
-    key: 'addMagnets',
-    value: function addMagnets(vertex) {
-      var max = this.geom.vertices.length,
-          maxMagnets = 1;
-      for (var i = 1; i <= 1; i++) {
-        var index = Misc.getRandomInt(0, max - 1);
-        var vertex = this.geom.vertices[index];
-        var magnetI = this.magnets.length;
-        this.magnets[magnetI] = this.distortVertex({ x: vertex.x, y: vertex.y, z: vertex.z }, 10);
-        // this.showMagnet(this.magnets[magnetI]);
-      }
-
-      var magnetI = 0;
-      this.magnets[magnetI] = { x: 0, y: -10, z: -30 };
-      // this.showMagnet(this.magnets[magnetI]);
-    }
-  }, {
-    key: 'getDistance3d',
-    value: function getDistance3d(vertex1, vertex2) {
-      var xfactor = vertex2.x - vertex1.x;
-      var yfactor = vertex2.y - vertex1.y;
-      var zfactor = vertex2.z - vertex1.z;
-      return Math.sqrt(xfactor * xfactor + yfactor * yfactor + zfactor * zfactor);
-    }
-  }, {
-    key: 'distortVertex',
-    value: function distortVertex(vertex, distortion) {
-      vertex.x = Misc.distort(vertex.x, distortion);
-      vertex.y = Misc.distort(vertex.y, distortion);
-      vertex.z = Misc.distort(vertex.z, distortion);
-      return vertex;
     }
   }]);
 
@@ -288,10 +370,218 @@ var Cube = (function (_THREE$Object3D) {
 exports['default'] = Cube;
 module.exports = exports['default'];
 
-},{"three":11}],4:[function(require,module,exports){
+},{"three":14}],4:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var _three = require('three');
+
+var _three2 = _interopRequireDefault(_three);
+
+var CubeEl = (function (_THREE$Object3D) {
+  _inherits(CubeEl, _THREE$Object3D);
+
+  function CubeEl() {
+    _classCallCheck(this, CubeEl);
+
+    _get(Object.getPrototypeOf(CubeEl.prototype), 'constructor', this).call(this);
+    this.count = 0;
+    this.active = 0;
+    this.phase = 1;
+
+    this.geom = new _three2['default'].CubeGeometry(40, 4, 4);
+    this.mat = new _three2['default'].MeshBasicMaterial({ color: 0xf3f1ef });
+    this.mesh = new _three2['default'].Mesh(this.geom, this.mat);
+
+    this.add(this.mesh);
+  }
+
+  _createClass(CubeEl, [{
+    key: 'update',
+    value: function update(average, pos) {
+      if (average * 0.01 > 1 && average * 0.01 < 1.1) {
+        this.active = 1;
+      }
+
+      if (pos == 'top' && this.phase == 2) {
+        pos = 'bot';
+      } else if (this.phase == 2) {
+        pos = 'top';
+      }
+
+      if (pos == 'top' && this.active == 1) {
+        this.position.x += 5;
+        this.position.y += 5;
+
+        if (this.position.x == 100) {
+          this.active = 0;
+
+          if (this.phase == 2) {
+            this.phase = 1;
+          } else {
+            this.phase = 2;
+          }
+        }
+      } else if (pos == 'bot' && this.active == 1) {
+        this.position.x -= 5;
+        this.position.y -= 5;
+
+        if (this.position.x == -200) {
+          this.active = 0;
+
+          if (this.phase == 2) {
+            this.phase = 1;
+          } else {
+            this.phase = 2;
+          }
+        }
+      }
+    }
+  }]);
+
+  return CubeEl;
+})(_three2['default'].Object3D);
+
+exports['default'] = CubeEl;
+module.exports = exports['default'];
+
+},{"three":14}],5:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var _three = require('three');
+
+var _three2 = _interopRequireDefault(_three);
+
+var Cube = (function (_THREE$Object3D) {
+  _inherits(Cube, _THREE$Object3D);
+
+  function Cube() {
+    _classCallCheck(this, Cube);
+
+    _get(Object.getPrototypeOf(Cube.prototype), 'constructor', this).call(this);
+    this.count = 0;
+    this.nbVertices = 0;
+
+    this.geom = new _three2['default'].PlaneGeometry(100, 100, 20, 20);
+    this.mat = new _three2['default'].MeshBasicMaterial({ color: 0xffffff, wireframe: true });
+    this.plane = new _three2['default'].Mesh(this.geom, this.mat);
+
+    this.add(this.plane);
+  }
+
+  _createClass(Cube, [{
+    key: 'update',
+    value: function update() {}
+  }]);
+
+  return Cube;
+})(_three2['default'].Object3D);
+
+exports['default'] = Cube;
+module.exports = exports['default'];
+
+},{"three":14}],6:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var _three = require('three');
+
+var _three2 = _interopRequireDefault(_three);
+
+var Sphere = (function (_THREE$Object3D) {
+  _inherits(Sphere, _THREE$Object3D);
+
+  function Sphere() {
+    _classCallCheck(this, Sphere);
+
+    _get(Object.getPrototypeOf(Sphere.prototype), 'constructor', this).call(this);
+    this.count = 0;
+
+    this.geom = new _three2['default'].SphereGeometry(30, 30, 30);
+    this.mat = new _three2['default'].MeshBasicMaterial({ color: 0xf3f1ef });
+    this.mesh = new _three2['default'].Mesh(this.geom, this.mat);
+
+    this.add(this.mesh);
+  }
+
+  _createClass(Sphere, [{
+    key: 'update',
+    value: function update(average, frequency) {
+      var scaleMax = 0.8;
+      var scaleMin = 0.4;
+
+      if (average != 0 && average > 60) {
+        if (average * 0.01 < scaleMin) {
+          this.scale.x = scaleMin;
+          this.scale.y = scaleMin;
+          this.scale.z = scaleMin;
+        } else if (average * 0.01 > scaleMax) {
+          this.scale.x = scaleMax;
+          this.scale.y = scaleMax;
+          this.scale.z = scaleMax;
+        } else {
+          this.scale.x = average * 0.01;
+          this.scale.y = average * 0.01;
+          this.scale.z = average * 0.01;
+        }
+      } else {
+        this.scale.x = scaleMin;
+        this.scale.y = scaleMin;
+        this.scale.z = scaleMin;
+      }
+    }
+  }]);
+
+  return Sphere;
+})(_three2['default'].Object3D);
+
+exports['default'] = Sphere;
+module.exports = exports['default'];
+
+},{"three":14}],7:[function(require,module,exports){
 module.exports = require('./vendor/dat.gui')
 module.exports.color = require('./vendor/dat.color')
-},{"./vendor/dat.color":5,"./vendor/dat.gui":6}],5:[function(require,module,exports){
+},{"./vendor/dat.color":8,"./vendor/dat.gui":9}],8:[function(require,module,exports){
 /**
  * dat-gui JavaScript Controller Library
  * http://code.google.com/p/dat-gui
@@ -1047,7 +1337,7 @@ dat.color.math = (function () {
 })(),
 dat.color.toString,
 dat.utils.common);
-},{}],6:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 /**
  * dat-gui JavaScript Controller Library
  * http://code.google.com/p/dat-gui
@@ -4708,7 +4998,7 @@ dat.dom.CenteredDiv = (function (dom, common) {
 dat.utils.common),
 dat.dom.dom,
 dat.utils.common);
-},{}],7:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 /*!
   * domready (c) Dustin Diaz 2014 - License MIT
   */
@@ -4740,7 +5030,7 @@ dat.utils.common);
 
 });
 
-},{}],8:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 (function (global){
 /*!
  * VERSION: 1.18.0
@@ -12315,7 +12605,7 @@ if (_gsScope._gsDefine) { _gsScope._gsQueue.pop()(); } //necessary in case Tween
 
 })((typeof(module) !== "undefined" && module.exports && typeof(global) !== "undefined") ? global : this || window, "TweenMax");
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],9:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 var now = require('performance-now')
   , global = typeof window === 'undefined' ? {} : window
   , vendors = ['moz', 'webkit']
@@ -12385,7 +12675,7 @@ module.exports.cancel = function() {
   caf.apply(global, arguments)
 }
 
-},{"performance-now":10}],10:[function(require,module,exports){
+},{"performance-now":13}],13:[function(require,module,exports){
 (function (process){
 // Generated by CoffeeScript 1.7.1
 (function() {
@@ -12421,7 +12711,7 @@ module.exports.cancel = function() {
 }).call(this);
 
 }).call(this,require('_process'))
-},{"_process":12}],11:[function(require,module,exports){
+},{"_process":15}],14:[function(require,module,exports){
 var self = self || {};// File:src/Three.js
 
 /**
@@ -47569,7 +47859,7 @@ if (typeof exports !== 'undefined') {
   this['THREE'] = THREE;
 }
 
-},{}],12:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
