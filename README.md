@@ -1,4 +1,4 @@
-threejs-starter-kit
+Three Workshop - Equalizer
 ===================
 
 It uses Three.js and Greensock as depencies.
