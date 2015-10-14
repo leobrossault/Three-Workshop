@@ -11,7 +11,7 @@ export default class CubeEl extends THREE.Object3D {
     this.active = 0;
     this.phase = 1;
 
-    this.geom = new THREE.CubeGeometry( 40 , 4, 4 );
+    this.geom = new THREE.BoxGeometry( 40 , 4, 4 );
     this.mat = new THREE.MeshBasicMaterial({color: 0xf3f1ef});
     this.mesh = new THREE.Mesh(this.geom, this.mat);
 

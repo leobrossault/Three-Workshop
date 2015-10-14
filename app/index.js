@@ -13,7 +13,8 @@ let webgl,
     average,
     isLaunch = 0,
     soundStarted = 0,
-    launcher;
+    launcher,
+    inputFile;
 
 domready(() => {
   // webgl settings
@@ -27,13 +28,20 @@ domready(() => {
   window.onresize = resizeHandler;
 
   launcher = document.getElementById('launcher');
+  // inputFile = document.getElementById('file');
+
   launcher.addEventListener('click', launch);
+  // inputFile.addEventListener('change', handleFileSelect);
   animate ();
 });
 
-function resizeHandler() {
+function resizeHandler () {
   webgl.resize(window.innerWidth, window.innerHeight);
 }
+
+// function addMusic () {
+
+// }
 
 function launch () {
   setupAudioNodes();
@@ -42,7 +50,7 @@ function launch () {
   isLaunch = 1;
 }
 
-function animate() {
+function animate () {
   raf(animate);
   webgl.render(average, frequencys, isLaunch);
 }
@@ -62,7 +70,7 @@ let context = new AudioContext(),
     arrayData =  new Uint8Array(analyser.frequencyBinCount),
     javascriptNode;
 
-function loadSound(url) {
+function loadSound (url) {
   console.log('load');
     var request = new XMLHttpRequest();
     request.open('GET', url, true);
@@ -82,7 +90,7 @@ function playSound (buffer) {
 }
 
 
-function setupAudioNodes() {
+function setupAudioNodes () {
     javascriptNode = context.createScriptProcessor(2048, 1, 1);
     javascriptNode.connect(context.destination);
    
@@ -118,7 +126,7 @@ function setupAudioNodes() {
 }
 
    
-function getAverageVolume(array) {
+function getAverageVolume (array) {
     var values = 0;
     var average;
    
@@ -129,6 +137,21 @@ function getAverageVolume(array) {
    
     average = values / length;
     return average;
+}
+
+function handleFileSelect (evt) {
+    if (evt) {
+      evt.stopPropagation();
+      evt.preventDefault();
+      var files = evt.srcElement.files;
+    } else {
+      var files = document.getElementById('fileinput').files;
+    }
+    var reader = new FileReader();
+
+    if (files[0].type.match('audio.*')) {
+      console.log(evt.target.result);
+    }
 }
 
  

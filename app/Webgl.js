@@ -128,7 +128,7 @@ export default class Webgl {
     /* PARTICLES */
 
     this.particles = new THREE.Geometry();
-    this.pMaterial = new THREE.ParticleBasicMaterial({
+    this.pMaterial = new THREE.PointCloudMaterial({
       color: 0xFFFFFF,
       size: 2,
       map: THREE.ImageUtils.loadTexture(
@@ -149,7 +149,7 @@ export default class Webgl {
       this.particles.vertices.push(this.particle);
     }
 
-    this.particleSystem = new THREE.ParticleSystem(this.particles, this.pMaterial);
+    this.particleSystem = new THREE.PointCloud(this.particles, this.pMaterial);
     this.particleSystem.sortParticles = true;
 
     /* PLANE */

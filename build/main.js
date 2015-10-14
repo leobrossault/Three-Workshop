@@ -159,7 +159,7 @@ var Webgl = (function () {
     /* PARTICLES */
 
     this.particles = new _three2['default'].Geometry();
-    this.pMaterial = new _three2['default'].ParticleBasicMaterial({
+    this.pMaterial = new _three2['default'].PointCloudMaterial({
       color: 0xFFFFFF,
       size: 2,
       map: _three2['default'].ImageUtils.loadTexture("app/assets/img/particle.svg"),
@@ -176,7 +176,7 @@ var Webgl = (function () {
       this.particles.vertices.push(this.particle);
     }
 
-    this.particleSystem = new _three2['default'].ParticleSystem(this.particles, this.pMaterial);
+    this.particleSystem = new _three2['default'].PointCloud(this.particles, this.pMaterial);
     this.particleSystem.sortParticles = true;
 
     /* PLANE */
@@ -353,45 +353,53 @@ var webgl = undefined,
     average = undefined,
     isLaunch = 0,
     soundStarted = 0,
-    launcher = undefined;
+    launcher = undefined,
+    inputFile = undefined;
 
 (0, _domready2['default'])(function () {
-    // webgl settings
-    webgl = new _Webgl2['default'](window.innerWidth, window.innerHeight);
-    document.body.appendChild(webgl.renderer.domElement);
+  // webgl settings
+  webgl = new _Webgl2['default'](window.innerWidth, window.innerHeight);
+  document.body.appendChild(webgl.renderer.domElement);
 
-    // GUI settings
-    // gui = new dat.GUI();
-    // gui.add(webgl, 'usePostprocessing');
+  // GUI settings
+  // gui = new dat.GUI();
+  // gui.add(webgl, 'usePostprocessing');
 
-    window.onresize = resizeHandler;
+  window.onresize = resizeHandler;
 
-    launcher = document.getElementById('launcher');
-    launcher.addEventListener('click', launch);
-    animate();
+  launcher = document.getElementById('launcher');
+  // inputFile = document.getElementById('file');
+
+  launcher.addEventListener('click', launch);
+  // inputFile.addEventListener('change', handleFileSelect);
+  animate();
 });
 
 function resizeHandler() {
-    webgl.resize(window.innerWidth, window.innerHeight);
+  webgl.resize(window.innerWidth, window.innerHeight);
 }
 
+// function addMusic () {
+
+// }
+
 function launch() {
-    setupAudioNodes();
-    loadSound(pathSound);
-    document.getElementById('container').classList.add('leave');
-    isLaunch = 1;
+  setupAudioNodes();
+  loadSound(pathSound);
+  document.getElementById('container').classList.add('leave');
+  isLaunch = 1;
 }
 
 function animate() {
-    (0, _raf2['default'])(animate);
-    webgl.render(average, frequencys, isLaunch);
+  (0, _raf2['default'])(animate);
+  webgl.render(average, frequencys, isLaunch);
 }
 
 if (!window.AudioContext) {
-    if (!window.webkitAudioContext) {
-        alert('no audiocontext found');
-    }
-    window.AudioContext = window.webkitAudioContext;
+  if (!window.webkitAudioContext) {
+    alert('no audiocontext found');
+  }
+  window.AudioContext = window.webkitAudioContext;
 }
 
 var context = new AudioContext(),
@@ -402,70 +410,85 @@ var context = new AudioContext(),
     javascriptNode = undefined;
 
 function loadSound(url) {
-    console.log('load');
-    var request = new XMLHttpRequest();
-    request.open('GET', url, true);
-    request.responseType = 'arraybuffer';
+  console.log('load');
+  var request = new XMLHttpRequest();
+  request.open('GET', url, true);
+  request.responseType = 'arraybuffer';
 
-    request.onload = function () {
-        context.decodeAudioData(request.response, function (buffer) {
-            playSound(buffer);
-        });
-    };
-    request.send();
+  request.onload = function () {
+    context.decodeAudioData(request.response, function (buffer) {
+      playSound(buffer);
+    });
+  };
+  request.send();
 }
 
 function playSound(buffer) {
-    sourceNode.buffer = buffer;
-    sourceNode.start(0);
+  sourceNode.buffer = buffer;
+  sourceNode.start(0);
 }
 
 function setupAudioNodes() {
-    javascriptNode = context.createScriptProcessor(2048, 1, 1);
-    javascriptNode.connect(context.destination);
+  javascriptNode = context.createScriptProcessor(2048, 1, 1);
+  javascriptNode.connect(context.destination);
 
-    analyser = context.createAnalyser();
-    analyser.smoothingTimeConstant = 0.1;
-    analyser.fftSize = 1024;
+  analyser = context.createAnalyser();
+  analyser.smoothingTimeConstant = 0.1;
+  analyser.fftSize = 1024;
 
-    sourceNode = context.createBufferSource();
+  sourceNode = context.createBufferSource();
 
-    sourceNode.connect(analyser);
+  sourceNode.connect(analyser);
 
-    analyser.connect(javascriptNode);
+  analyser.connect(javascriptNode);
 
-    sourceNode.connect(context.destination);
+  sourceNode.connect(context.destination);
 
-    javascriptNode.onaudioprocess = function () {
-        var array = new Uint8Array(analyser.frequencyBinCount);
-        analyser.getByteFrequencyData(array);
-        average = getAverageVolume(array);
-        frequencys = array;
+  javascriptNode.onaudioprocess = function () {
+    var array = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(array);
+    average = getAverageVolume(array);
+    frequencys = array;
 
-        if (average != 0) {
-            soundStarted = 1;
-        }
+    if (average != 0) {
+      soundStarted = 1;
+    }
 
-        if (soundStarted == 1 && average == 0) {
-            soundStarted = 0;
-            document.getElementById('container').classList.remove('leave');
-            launcher.textContent = 'Retry the experiment';
-            isLaunch = 0;
-        }
-    };
+    if (soundStarted == 1 && average == 0) {
+      soundStarted = 0;
+      document.getElementById('container').classList.remove('leave');
+      launcher.textContent = 'Retry the experiment';
+      isLaunch = 0;
+    }
+  };
 }
 
 function getAverageVolume(array) {
-    var values = 0;
-    var average;
+  var values = 0;
+  var average;
 
-    var length = array.length;
-    for (var i = 0; i < length; i++) {
-        values += array[i];
-    }
+  var length = array.length;
+  for (var i = 0; i < length; i++) {
+    values += array[i];
+  }
 
-    average = values / length;
-    return average;
+  average = values / length;
+  return average;
+}
+
+function handleFileSelect(evt) {
+  if (evt) {
+    evt.stopPropagation();
+    evt.preventDefault();
+    var files = evt.srcElement.files;
+  } else {
+    var files = document.getElementById('fileinput').files;
+  }
+  var reader = new FileReader();
+
+  if (files[0].type.match('audio.*')) {
+    console.log(evt.target.result);
+  }
 }
 
 },{"./Webgl":1,"dat-gui":9,"domready":12,"gsap":13,"raf":14}],3:[function(require,module,exports){
@@ -498,8 +521,7 @@ var Cube = (function (_THREE$Object3D) {
     _get(Object.getPrototypeOf(Cube.prototype), 'constructor', this).call(this);
     this.count = 0;
 
-    // this.geom = new THREE.CubeGeometry( 100 , 5, 100 );
-    this.geom = new _three2['default'].CubeGeometry(25, 25, 25);
+    this.geom = new _three2['default'].BoxGeometry(25, 25, 25);
     this.mat = new _three2['default'].MeshBasicMaterial({ color: 0xf3f1ef });
     this.mesh = new _three2['default'].Mesh(this.geom, this.mat);
 
@@ -508,17 +530,7 @@ var Cube = (function (_THREE$Object3D) {
 
   _createClass(Cube, [{
     key: 'update',
-    value: function update(average, frequency) {
-      // this.rotation.x += 0.01;
-      // this.rotation.z += 0.01;
-
-      if (average != 0) {
-
-        // this.scale.x = average * 0.01;
-        // this.scale.y = average * 0.01;
-        // this.scale.z = average * 0.01;
-      }
-    }
+    value: function update(average, frequency) {}
   }]);
 
   return Cube;
@@ -559,7 +571,7 @@ var CubeEl = (function (_THREE$Object3D) {
     this.active = 0;
     this.phase = 1;
 
-    this.geom = new _three2['default'].CubeGeometry(40, 4, 4);
+    this.geom = new _three2['default'].BoxGeometry(40, 4, 4);
     this.mat = new _three2['default'].MeshBasicMaterial({ color: 0xf3f1ef });
     this.mesh = new _three2['default'].Mesh(this.geom, this.mat);
 
@@ -647,7 +659,7 @@ var CubeElSecond = (function (_THREE$Object3D) {
     this.active = 0;
     this.phase = 1;
 
-    this.geom = new _three2['default'].CubeGeometry(10, 4, 4);
+    this.geom = new _three2['default'].BoxGeometry(10, 4, 4);
     this.mat = new _three2['default'].MeshBasicMaterial({ color: 0xf3f1ef });
     this.mesh = new _three2['default'].Mesh(this.geom, this.mat);
 
