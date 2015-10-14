@@ -4,34 +4,57 @@ import Cube from './objects/Cube';
 import CubeEl from './objects/CubeEl';
 import CubeElSecond from './objects/CubeElSecond';
 import Sphere from './objects/Sphere';
-// import Line from './objects/Line';
+import Line from './objects/Line';
 import Plane from './objects/Plane';
 import THREE from 'three';
 window.THREE = THREE;
 
-var light,
+var centerLight,
+    leftLight,
+    rightLight,
     nbSphere = 2,
     nbCubeEl = 2,
     objects = [],
     cubeElArray = [],
     cubeElArraySecond = [],
     ts = 0,
-    colors = [0x1C448E, 0x3E92CC, 0xFFAD05, 0xE8D7F1, 0xDB162F],
-    iColor = 0;
+    colors = [0x1C448E, 0x3E92CC, 0xE8D7F1, 0xFFAD05, 0xDB162F],
+    iColor = 0,
+    controls,
+    particleCount = 1800,
+    blockScene = 0,
+    iColorWave = 0;
 
 export default class Webgl {
   constructor(width, height) {
     this.scene = new THREE.Scene();
-
+    this.scene.rotation.x = -0.5;
 
     this.camera = new THREE.PerspectiveCamera(50, width / height, 1, 1000);
     this.camera.position.z = 100;
     this.camera.position.y = 100;
     this.camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-    light = new THREE.PointLight( 0xffffff, 1, 250 );
-    light.position.set(10, 110, 20);
-    this.scene.add(light);
+    this.controls = new THREE.OrbitControls(this.camera);
+
+
+    centerLight = new THREE.PointLight( 0xffffff, 1, 50 );
+    centerLight.position.set(0, -30, 0);
+
+    leftLight = new THREE.PointLight( 0xffffff, 1, 200 );
+    leftLight.position.set(-50, -30, 0);
+
+    rightLight = new THREE.PointLight( 0xffffff, 1, 200 );
+    rightLight.position.set(50, -30, 0);
+    // centerLight = new THREE.HemisphereLight( 0xf55779, 0xf55779, 0.6 );
+    // centerLight.color.setHSL( 0.6, 1, 0.6 );
+    // centerLight.groundColor.setHSL( 0.095, 1, 0.75 );
+    // centerLight.position.set( 0, 500, 0 );
+    // this.scene.add( centerLight );
+
+    this.scene.add(leftLight);
+    this.scene.add(rightLight);
+    this.scene.add(centerLight);
 
     this.renderer = new THREE.WebGLRenderer();
     this.renderer.setSize(width, height);
@@ -104,13 +127,12 @@ export default class Webgl {
 
     /* PARTICLES */
 
-    this.particleCount = 1800;
     this.particles = new THREE.Geometry();
     this.pMaterial = new THREE.ParticleBasicMaterial({
       color: 0xFFFFFF,
       size: 2,
       map: THREE.ImageUtils.loadTexture(
-        "app/particle.svg"
+        "app/assets/img/particle.svg"
       ),
       blending: THREE.AdditiveBlending,
       transparent: true
@@ -118,7 +140,7 @@ export default class Webgl {
 
     
 
-    for (var p = 0; p < this.particleCount; p++) {
+    for (var p = 0; p < particleCount; p++) {
       this.pX = Math.random() * 500 - 250;
       this.pY = Math.random() * 500 - 250;
       this.pZ = Math.random() * 500 - 250;
@@ -135,20 +157,13 @@ export default class Webgl {
     this.plane.position.set(0, 0, 0);
     this.plane.rotation.x = 0.5 * Math.PI;  
 
-    /* WAVE */
-    // this.wave = new Line ();
-    // this.wave.position.set(0, 0, 0);
-
-
     /* ADD */
-    // this.scene.add(this.cube);
     this.addObjects ();
   }
 
   addObjects () {
     this.scene.add(this.plane);
     this.scene.add(this.particleSystem);
-    // this.scene.add(this.wave); 
   }
 
   initPostprocessing() {
@@ -168,7 +183,7 @@ export default class Webgl {
     this.renderer.setSize(width, height);
   };
 
-  render(average, frequencys) {
+  render(average, frequencys, isLaunch) {
     ts += 0.1;
     if (this.usePostprocessing) {
       this.composer.reset();
@@ -182,6 +197,24 @@ export default class Webgl {
       this.renderer.autoClear = false;
       this.renderer.clear();
       this.renderer.render(this.scene, this.camera, this.light);
+    }
+
+    if (blockScene == 0 && isLaunch == 1) {
+      this.scene.rotation.x += 0.001;
+
+      if (this.scene.rotation.x > 0) {
+        blockScene = 1;
+      }
+    }
+    
+    if (ts % 50 < 0.1 && isLaunch == 1) {
+        leftLight.color.setHex (colors[iColorWave]);
+        rightLight.color.setHex (colors[iColorWave]);
+        iColorWave ++;
+
+        if (iColorWave == colors.length) {
+          iColorWave = 0;
+        }
     }
 
     if (average < 80) {
@@ -207,6 +240,7 @@ export default class Webgl {
       }
     }
 
+
     /* ELEMENT TRANSLATION */
     for (var q = 0; q < nbCubeEl; q ++) {
       if (q == 0) {
@@ -216,22 +250,29 @@ export default class Webgl {
         cubeElArray[q].update(average, 'bot');
         cubeElArraySecond[q].update(average, 'bot');
       }
+
+      if (isLaunch == 0) {
+        cubeElArray[q].geom.visible = false;
+      } else {
+        cubeElArray[q].geom.visible = true;
+      }
     }
 
     /* WAVE */
     for (var n = 0; n < this.plane.geom.vertices.length; n ++) {
       var vertice = this.plane.geom.vertices[n];
+      var face = this.plane.geom.faces[n];
       var dist = new THREE.Vector2(vertice.x, vertice.y).sub(new THREE.Vector2(0,0));
       var averageWave = average;
 
       if (average > 30) {
         averageWave = 30;
       }
-
       var amplitude = 0.2 * averageWave;
       var size = 5.0;
       
-      vertice.z = Math.sin(dist.length()/-size + (ts)) * amplitude;
+      vertice.z = Math.sin(dist.length()/-size + (ts)) * amplitude;  
+      face.color = new THREE.Color(0x15687a);;  
       this.plane.geom.verticesNeedUpdate = true;
     }
 

@@ -9,7 +9,21 @@ export default class Sphere extends THREE.Object3D {
     this.count = 0;
 
     this.geom = new THREE.SphereGeometry( 30 , 30, 30 );
-    this.mat = new THREE.MeshBasicMaterial({color: 0xf3f1ef});
+    // this.mat = new THREE.MeshBasicMaterial({color: 0xf3f1ef});
+    this.mat = new THREE.ShaderMaterial({
+      uniforms: {
+        noise: {
+          type: "f", 
+          value: 0.0
+        },
+        time: {
+            type: "f", 
+            value: 0.0
+        }
+      },
+      vertexShader: document.getElementById('vertexShader').textContent,
+      fragmentShader: document.getElementById('fragmentShader').textContent,
+    });
     this.mesh = new THREE.Mesh(this.geom, this.mat);
 
     this.add(this.mesh);
@@ -39,5 +53,7 @@ export default class Sphere extends THREE.Object3D {
       this.scale.y = scaleMin;
       this.scale.z = scaleMin;       
     }
+
+    this.mat.uniforms['time'].value = average / 1000;
   }
 }

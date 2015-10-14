@@ -10,8 +10,8 @@ export default class Cube extends THREE.Object3D {
     this.count = 0;
     this.nbVertices = 0;
 
-    this.geom = new THREE.PlaneGeometry(100, 100, 20, 20);
-    this.mat = new THREE.MeshBasicMaterial({color: 0xffffff, wireframe: true});
+    this.geom = new THREE.PlaneGeometry(100, 100, 40, 40);
+    this.mat = new THREE.MeshPhongMaterial({color: 0xffffff, wireframe: true});
     this.plane = new THREE.Mesh(this.geom, this.mat);
 
     this.add(this.plane);

@@ -10,7 +10,7 @@ export default class Line extends THREE.Object3D {
 
     this.material = new THREE.LineBasicMaterial({
       color: 0x0000ff,
-      linewidth: 50
+      linewidth: 10000
     });
 
     this.geometry = new THREE.Geometry();

@@ -23,8 +23,6 @@ export default class CubeElSecond extends THREE.Object3D {
       this.active = 1;
     }
 
-    console.log('el second');
-
     if (pos == 'top' && this.phase == 2) {
       pos = 'bot';
     } else if (this.phase == 2) {

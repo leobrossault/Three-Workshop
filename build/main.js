@@ -27,7 +27,9 @@ var _objectsSphere = require('./objects/Sphere');
 
 var _objectsSphere2 = _interopRequireDefault(_objectsSphere);
 
-// import Line from './objects/Line';
+var _objectsLine = require('./objects/Line');
+
+var _objectsLine2 = _interopRequireDefault(_objectsLine);
 
 var _objectsPlane = require('./objects/Plane');
 
@@ -39,30 +41,53 @@ var _three2 = _interopRequireDefault(_three);
 
 window.THREE = _three2['default'];
 
-var light,
+var centerLight,
+    leftLight,
+    rightLight,
     nbSphere = 2,
     nbCubeEl = 2,
     objects = [],
     cubeElArray = [],
     cubeElArraySecond = [],
     ts = 0,
-    colors = [0x1C448E, 0x3E92CC, 0xFFAD05, 0xE8D7F1, 0xDB162F],
-    iColor = 0;
+    colors = [0x1C448E, 0x3E92CC, 0xE8D7F1, 0xFFAD05, 0xDB162F],
+    iColor = 0,
+    controls,
+    particleCount = 1800,
+    blockScene = 0,
+    iColorWave = 0;
 
 var Webgl = (function () {
   function Webgl(width, height) {
     _classCallCheck(this, Webgl);
 
     this.scene = new _three2['default'].Scene();
+    this.scene.rotation.x = -0.5;
 
     this.camera = new _three2['default'].PerspectiveCamera(50, width / height, 1, 1000);
     this.camera.position.z = 100;
     this.camera.position.y = 100;
     this.camera.lookAt(new _three2['default'].Vector3(0, 0, 0));
 
-    light = new _three2['default'].PointLight(0xffffff, 1, 250);
-    light.position.set(10, 110, 20);
-    this.scene.add(light);
+    this.controls = new _three2['default'].OrbitControls(this.camera);
+
+    centerLight = new _three2['default'].PointLight(0xffffff, 1, 50);
+    centerLight.position.set(0, -30, 0);
+
+    leftLight = new _three2['default'].PointLight(0xffffff, 1, 200);
+    leftLight.position.set(-50, -30, 0);
+
+    rightLight = new _three2['default'].PointLight(0xffffff, 1, 200);
+    rightLight.position.set(50, -30, 0);
+    // centerLight = new THREE.HemisphereLight( 0xf55779, 0xf55779, 0.6 );
+    // centerLight.color.setHSL( 0.6, 1, 0.6 );
+    // centerLight.groundColor.setHSL( 0.095, 1, 0.75 );
+    // centerLight.position.set( 0, 500, 0 );
+    // this.scene.add( centerLight );
+
+    this.scene.add(leftLight);
+    this.scene.add(rightLight);
+    this.scene.add(centerLight);
 
     this.renderer = new _three2['default'].WebGLRenderer();
     this.renderer.setSize(width, height);
@@ -133,17 +158,16 @@ var Webgl = (function () {
 
     /* PARTICLES */
 
-    this.particleCount = 1800;
     this.particles = new _three2['default'].Geometry();
     this.pMaterial = new _three2['default'].ParticleBasicMaterial({
       color: 0xFFFFFF,
       size: 2,
-      map: _three2['default'].ImageUtils.loadTexture("app/particle.svg"),
+      map: _three2['default'].ImageUtils.loadTexture("app/assets/img/particle.svg"),
       blending: _three2['default'].AdditiveBlending,
       transparent: true
     });
 
-    for (var p = 0; p < this.particleCount; p++) {
+    for (var p = 0; p < particleCount; p++) {
       this.pX = Math.random() * 500 - 250;
       this.pY = Math.random() * 500 - 250;
       this.pZ = Math.random() * 500 - 250;
@@ -160,12 +184,7 @@ var Webgl = (function () {
     this.plane.position.set(0, 0, 0);
     this.plane.rotation.x = 0.5 * Math.PI;
 
-    /* WAVE */
-    // this.wave = new Line ();
-    // this.wave.position.set(0, 0, 0);
-
     /* ADD */
-    // this.scene.add(this.cube);
     this.addObjects();
   }
 
@@ -174,7 +193,6 @@ var Webgl = (function () {
     value: function addObjects() {
       this.scene.add(this.plane);
       this.scene.add(this.particleSystem);
-      // this.scene.add(this.wave);
     }
   }, {
     key: 'initPostprocessing',
@@ -197,7 +215,7 @@ var Webgl = (function () {
     }
   }, {
     key: 'render',
-    value: function render(average, frequencys) {
+    value: function render(average, frequencys, isLaunch) {
       ts += 0.1;
       if (this.usePostprocessing) {
         this.composer.reset();
@@ -211,6 +229,24 @@ var Webgl = (function () {
         this.renderer.autoClear = false;
         this.renderer.clear();
         this.renderer.render(this.scene, this.camera, this.light);
+      }
+
+      if (blockScene == 0 && isLaunch == 1) {
+        this.scene.rotation.x += 0.001;
+
+        if (this.scene.rotation.x > 0) {
+          blockScene = 1;
+        }
+      }
+
+      if (ts % 50 < 0.1 && isLaunch == 1) {
+        leftLight.color.setHex(colors[iColorWave]);
+        rightLight.color.setHex(colors[iColorWave]);
+        iColorWave++;
+
+        if (iColorWave == colors.length) {
+          iColorWave = 0;
+        }
       }
 
       if (average < 80) {
@@ -245,22 +281,29 @@ var Webgl = (function () {
           cubeElArray[q].update(average, 'bot');
           cubeElArraySecond[q].update(average, 'bot');
         }
+
+        if (isLaunch == 0) {
+          cubeElArray[q].geom.visible = false;
+        } else {
+          cubeElArray[q].geom.visible = true;
+        }
       }
 
       /* WAVE */
       for (var n = 0; n < this.plane.geom.vertices.length; n++) {
         var vertice = this.plane.geom.vertices[n];
+        var face = this.plane.geom.faces[n];
         var dist = new _three2['default'].Vector2(vertice.x, vertice.y).sub(new _three2['default'].Vector2(0, 0));
         var averageWave = average;
 
         if (average > 30) {
           averageWave = 30;
         }
-
         var amplitude = 0.2 * averageWave;
         var size = 5.0;
 
         vertice.z = Math.sin(dist.length() / -size + ts) * amplitude;
+        face.color = new _three2['default'].Color(0x15687a);;
         this.plane.geom.verticesNeedUpdate = true;
       }
 
@@ -280,7 +323,7 @@ var Webgl = (function () {
 exports['default'] = Webgl;
 module.exports = exports['default'];
 
-},{"./objects/Cube":3,"./objects/CubeEl":4,"./objects/CubeElSecond":5,"./objects/Plane":6,"./objects/Sphere":7,"three":15}],2:[function(require,module,exports){
+},{"./objects/Cube":3,"./objects/CubeEl":4,"./objects/CubeElSecond":5,"./objects/Line":6,"./objects/Plane":7,"./objects/Sphere":8,"three":16}],2:[function(require,module,exports){
 'use strict';
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
@@ -303,36 +346,129 @@ var _datGui2 = _interopRequireDefault(_datGui);
 
 require('gsap');
 
-var webgl = undefined;
-var gui = undefined;
+var webgl = undefined,
+    gui = undefined,
+    pathSound = 'app/assets/sound/Fakear_Neptune.mp3',
+    frequencys = undefined,
+    average = undefined,
+    isLaunch = 0,
+    soundStarted = 0,
+    launcher = undefined;
 
 (0, _domready2['default'])(function () {
-  // webgl settings
-  webgl = new _Webgl2['default'](window.innerWidth, window.innerHeight);
-  document.body.appendChild(webgl.renderer.domElement);
+    // webgl settings
+    webgl = new _Webgl2['default'](window.innerWidth, window.innerHeight);
+    document.body.appendChild(webgl.renderer.domElement);
 
-  // GUI settings
-  gui = new _datGui2['default'].GUI();
-  gui.add(webgl, 'usePostprocessing');
+    // GUI settings
+    // gui = new dat.GUI();
+    // gui.add(webgl, 'usePostprocessing');
 
-  // handle resize
-  window.onresize = resizeHandler;
+    window.onresize = resizeHandler;
 
-  // let's play !
-  animate();
+    launcher = document.getElementById('launcher');
+    launcher.addEventListener('click', launch);
+    animate();
 });
 
 function resizeHandler() {
-  webgl.resize(window.innerWidth, window.innerHeight);
+    webgl.resize(window.innerWidth, window.innerHeight);
+}
+
+function launch() {
+    setupAudioNodes();
+    loadSound(pathSound);
+    document.getElementById('container').classList.add('leave');
+    isLaunch = 1;
 }
 
 function animate() {
-  (0, _raf2['default'])(animate);
-
-  webgl.render(average, frequencys);
+    (0, _raf2['default'])(animate);
+    webgl.render(average, frequencys, isLaunch);
 }
 
-},{"./Webgl":1,"dat-gui":8,"domready":11,"gsap":12,"raf":13}],3:[function(require,module,exports){
+if (!window.AudioContext) {
+    if (!window.webkitAudioContext) {
+        alert('no audiocontext found');
+    }
+    window.AudioContext = window.webkitAudioContext;
+}
+
+var context = new AudioContext(),
+    audioBuffer = undefined,
+    sourceNode = context.createBufferSource(),
+    analyser = context.createAnalyser(),
+    arrayData = new Uint8Array(analyser.frequencyBinCount),
+    javascriptNode = undefined;
+
+function loadSound(url) {
+    console.log('load');
+    var request = new XMLHttpRequest();
+    request.open('GET', url, true);
+    request.responseType = 'arraybuffer';
+
+    request.onload = function () {
+        context.decodeAudioData(request.response, function (buffer) {
+            playSound(buffer);
+        });
+    };
+    request.send();
+}
+
+function playSound(buffer) {
+    sourceNode.buffer = buffer;
+    sourceNode.start(0);
+}
+
+function setupAudioNodes() {
+    javascriptNode = context.createScriptProcessor(2048, 1, 1);
+    javascriptNode.connect(context.destination);
+
+    analyser = context.createAnalyser();
+    analyser.smoothingTimeConstant = 0.1;
+    analyser.fftSize = 1024;
+
+    sourceNode = context.createBufferSource();
+
+    sourceNode.connect(analyser);
+
+    analyser.connect(javascriptNode);
+
+    sourceNode.connect(context.destination);
+
+    javascriptNode.onaudioprocess = function () {
+        var array = new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteFrequencyData(array);
+        average = getAverageVolume(array);
+        frequencys = array;
+
+        if (average != 0) {
+            soundStarted = 1;
+        }
+
+        if (soundStarted == 1 && average == 0) {
+            soundStarted = 0;
+            document.getElementById('container').classList.remove('leave');
+            launcher.textContent = 'Retry the experiment';
+            isLaunch = 0;
+        }
+    };
+}
+
+function getAverageVolume(array) {
+    var values = 0;
+    var average;
+
+    var length = array.length;
+    for (var i = 0; i < length; i++) {
+        values += array[i];
+    }
+
+    average = values / length;
+    return average;
+}
+
+},{"./Webgl":1,"dat-gui":9,"domready":12,"gsap":13,"raf":14}],3:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -391,7 +527,7 @@ var Cube = (function (_THREE$Object3D) {
 exports['default'] = Cube;
 module.exports = exports['default'];
 
-},{"three":15}],4:[function(require,module,exports){
+},{"three":16}],4:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -479,7 +615,7 @@ var CubeEl = (function (_THREE$Object3D) {
 exports['default'] = CubeEl;
 module.exports = exports['default'];
 
-},{"three":15}],5:[function(require,module,exports){
+},{"three":16}],5:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -525,8 +661,6 @@ var CubeElSecond = (function (_THREE$Object3D) {
         this.active = 1;
       }
 
-      console.log('el second');
-
       if (pos == 'top' && this.phase == 2) {
         pos = 'bot';
       } else if (this.phase == 2) {
@@ -569,7 +703,59 @@ var CubeElSecond = (function (_THREE$Object3D) {
 exports['default'] = CubeElSecond;
 module.exports = exports['default'];
 
-},{"three":15}],6:[function(require,module,exports){
+},{"three":16}],6:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var _three = require('three');
+
+var _three2 = _interopRequireDefault(_three);
+
+var Line = (function (_THREE$Object3D) {
+  _inherits(Line, _THREE$Object3D);
+
+  function Line() {
+    _classCallCheck(this, Line);
+
+    _get(Object.getPrototypeOf(Line.prototype), 'constructor', this).call(this);
+
+    this.material = new _three2['default'].LineBasicMaterial({
+      color: 0x0000ff,
+      linewidth: 10000
+    });
+
+    this.geometry = new _three2['default'].Geometry();
+    this.geometry.vertices.push(new _three2['default'].Vector3(-10, 0, 0), new _three2['default'].Vector3(0, 0, 0), new _three2['default'].Vector3(10, 0, 0));
+
+    this.line = new _three2['default'].Line(this.geometry, this.material);
+    this.add(this.line);
+  }
+
+  _createClass(Line, [{
+    key: 'update',
+    value: function update() {}
+  }]);
+
+  return Line;
+})(_three2['default'].Object3D);
+
+exports['default'] = Line;
+module.exports = exports['default'];
+
+},{"three":16}],7:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -600,8 +786,8 @@ var Cube = (function (_THREE$Object3D) {
     this.count = 0;
     this.nbVertices = 0;
 
-    this.geom = new _three2['default'].PlaneGeometry(100, 100, 20, 20);
-    this.mat = new _three2['default'].MeshBasicMaterial({ color: 0xffffff, wireframe: true });
+    this.geom = new _three2['default'].PlaneGeometry(100, 100, 40, 40);
+    this.mat = new _three2['default'].MeshPhongMaterial({ color: 0xffffff, wireframe: true });
     this.plane = new _three2['default'].Mesh(this.geom, this.mat);
 
     this.add(this.plane);
@@ -618,7 +804,7 @@ var Cube = (function (_THREE$Object3D) {
 exports['default'] = Cube;
 module.exports = exports['default'];
 
-},{"three":15}],7:[function(require,module,exports){
+},{"three":16}],8:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -649,7 +835,21 @@ var Sphere = (function (_THREE$Object3D) {
     this.count = 0;
 
     this.geom = new _three2['default'].SphereGeometry(30, 30, 30);
-    this.mat = new _three2['default'].MeshBasicMaterial({ color: 0xf3f1ef });
+    // this.mat = new THREE.MeshBasicMaterial({color: 0xf3f1ef});
+    this.mat = new _three2['default'].ShaderMaterial({
+      uniforms: {
+        noise: {
+          type: "f",
+          value: 0.0
+        },
+        time: {
+          type: "f",
+          value: 0.0
+        }
+      },
+      vertexShader: document.getElementById('vertexShader').textContent,
+      fragmentShader: document.getElementById('fragmentShader').textContent
+    });
     this.mesh = new _three2['default'].Mesh(this.geom, this.mat);
 
     this.add(this.mesh);
@@ -680,6 +880,8 @@ var Sphere = (function (_THREE$Object3D) {
         this.scale.y = scaleMin;
         this.scale.z = scaleMin;
       }
+
+      this.mat.uniforms['time'].value = average / 1000;
     }
   }]);
 
@@ -689,10 +891,10 @@ var Sphere = (function (_THREE$Object3D) {
 exports['default'] = Sphere;
 module.exports = exports['default'];
 
-},{"three":15}],8:[function(require,module,exports){
+},{"three":16}],9:[function(require,module,exports){
 module.exports = require('./vendor/dat.gui')
 module.exports.color = require('./vendor/dat.color')
-},{"./vendor/dat.color":9,"./vendor/dat.gui":10}],9:[function(require,module,exports){
+},{"./vendor/dat.color":10,"./vendor/dat.gui":11}],10:[function(require,module,exports){
 /**
  * dat-gui JavaScript Controller Library
  * http://code.google.com/p/dat-gui
@@ -1448,7 +1650,7 @@ dat.color.math = (function () {
 })(),
 dat.color.toString,
 dat.utils.common);
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 /**
  * dat-gui JavaScript Controller Library
  * http://code.google.com/p/dat-gui
@@ -5109,7 +5311,7 @@ dat.dom.CenteredDiv = (function (dom, common) {
 dat.utils.common),
 dat.dom.dom,
 dat.utils.common);
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 /*!
   * domready (c) Dustin Diaz 2014 - License MIT
   */
@@ -5141,7 +5343,7 @@ dat.utils.common);
 
 });
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 (function (global){
 /*!
  * VERSION: 1.18.0
@@ -12716,7 +12918,7 @@ if (_gsScope._gsDefine) { _gsScope._gsQueue.pop()(); } //necessary in case Tween
 
 })((typeof(module) !== "undefined" && module.exports && typeof(global) !== "undefined") ? global : this || window, "TweenMax");
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 var now = require('performance-now')
   , global = typeof window === 'undefined' ? {} : window
   , vendors = ['moz', 'webkit']
@@ -12786,7 +12988,7 @@ module.exports.cancel = function() {
   caf.apply(global, arguments)
 }
 
-},{"performance-now":14}],14:[function(require,module,exports){
+},{"performance-now":15}],15:[function(require,module,exports){
 (function (process){
 // Generated by CoffeeScript 1.7.1
 (function() {
@@ -12822,7 +13024,7 @@ module.exports.cancel = function() {
 }).call(this);
 
 }).call(this,require('_process'))
-},{"_process":16}],15:[function(require,module,exports){
+},{"_process":17}],16:[function(require,module,exports){
 var self = self || {};// File:src/Three.js
 
 /**
@@ -47970,7 +48172,7 @@ if (typeof exports !== 'undefined') {
   this['THREE'] = THREE;
 }
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};

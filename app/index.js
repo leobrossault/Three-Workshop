@@ -6,8 +6,14 @@ import raf from 'raf';
 import dat from 'dat-gui';
 import 'gsap';
 
-let webgl;
-let gui;
+let webgl,
+    gui,
+    pathSound = 'app/assets/sound/Fakear_Neptune.mp3',
+    frequencys,
+    average,
+    isLaunch = 0,
+    soundStarted = 0,
+    launcher;
 
 domready(() => {
   // webgl settings
@@ -15,23 +21,114 @@ domready(() => {
   document.body.appendChild(webgl.renderer.domElement);
 
   // GUI settings
-  gui = new dat.GUI();
-  gui.add(webgl, 'usePostprocessing');
+  // gui = new dat.GUI();
+  // gui.add(webgl, 'usePostprocessing');
 
-  // handle resize
   window.onresize = resizeHandler;
 
-  // let's play !
-  animate();
-
+  launcher = document.getElementById('launcher');
+  launcher.addEventListener('click', launch);
+  animate ();
 });
 
 function resizeHandler() {
   webgl.resize(window.innerWidth, window.innerHeight);
 }
 
+function launch () {
+  setupAudioNodes();
+  loadSound(pathSound);
+  document.getElementById('container').classList.add('leave');
+  isLaunch = 1;
+}
+
 function animate() {
   raf(animate);
-
-  webgl.render(average, frequencys);
+  webgl.render(average, frequencys, isLaunch);
 }
+
+
+if (! window.AudioContext) {
+  if (! window.webkitAudioContext) {
+      alert('no audiocontext found');
+  }
+  window.AudioContext = window.webkitAudioContext;
+}
+
+let context = new AudioContext(),
+    audioBuffer,
+    sourceNode = context.createBufferSource(),
+    analyser = context.createAnalyser(),
+    arrayData =  new Uint8Array(analyser.frequencyBinCount),
+    javascriptNode;
+
+function loadSound(url) {
+  console.log('load');
+    var request = new XMLHttpRequest();
+    request.open('GET', url, true);
+    request.responseType = 'arraybuffer';
+   
+    request.onload = function() {
+        context.decodeAudioData(request.response, function(buffer) {
+            playSound(buffer);
+        });
+    }
+    request.send();
+}
+   
+function playSound (buffer) {
+    sourceNode.buffer = buffer;
+    sourceNode.start(0);
+}
+
+
+function setupAudioNodes() {
+    javascriptNode = context.createScriptProcessor(2048, 1, 1);
+    javascriptNode.connect(context.destination);
+   
+    analyser = context.createAnalyser();
+    analyser.smoothingTimeConstant = 0.1;
+    analyser.fftSize = 1024;
+   
+    sourceNode = context.createBufferSource();
+   
+    sourceNode.connect(analyser);
+   
+    analyser.connect(javascriptNode);
+   
+    sourceNode.connect(context.destination);
+
+    javascriptNode.onaudioprocess = function() {
+      var array =  new Uint8Array(analyser.frequencyBinCount);
+      analyser.getByteFrequencyData(array);
+      average = getAverageVolume(array);
+      frequencys = array;
+
+      if (average != 0) {
+        soundStarted = 1;
+      }
+
+      if (soundStarted == 1 && average == 0) {
+        soundStarted = 0;
+        document.getElementById('container').classList.remove('leave');
+        launcher.textContent = 'Retry the experiment';
+        isLaunch = 0;
+      }
+    }
+}
+
+   
+function getAverageVolume(array) {
+    var values = 0;
+    var average;
+   
+    var length = array.length;
+    for (var i = 0; i < length; i++) {
+        values += array[i];
+    }
+   
+    average = values / length;
+    return average;
+}
+
+ 
