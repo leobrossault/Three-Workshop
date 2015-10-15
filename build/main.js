@@ -11,10 +11,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'd
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-var _objectsCube = require('./objects/Cube');
-
-var _objectsCube2 = _interopRequireDefault(_objectsCube);
-
 var _objectsCubeEl = require('./objects/CubeEl');
 
 var _objectsCubeEl2 = _interopRequireDefault(_objectsCubeEl);
@@ -51,6 +47,7 @@ var centerLight,
     cubeElArraySecond = [],
     ts = 0,
     colors = [0x1C448E, 0x3E92CC, 0xE8D7F1, 0xFFAD05, 0xDB162F],
+    colorsWave = [0xd7e2f1, 0xd7f1e0, 0xE8D7F1, 0xf1e6d7, 0xf1d7d9],
     iColor = 0,
     controls,
     particleCount = 1800,
@@ -79,11 +76,6 @@ var Webgl = (function () {
 
     rightLight = new _three2['default'].PointLight(0xffffff, 1, 200);
     rightLight.position.set(50, -30, 0);
-    // centerLight = new THREE.HemisphereLight( 0xf55779, 0xf55779, 0.6 );
-    // centerLight.color.setHSL( 0.6, 1, 0.6 );
-    // centerLight.groundColor.setHSL( 0.095, 1, 0.75 );
-    // centerLight.position.set( 0, 500, 0 );
-    // this.scene.add( centerLight );
 
     this.scene.add(leftLight);
     this.scene.add(rightLight);
@@ -98,22 +90,18 @@ var Webgl = (function () {
     this.composer.setSize(width, height);
     this.initPostprocessing();
 
-    /* CUBE CENTER */
-    this.cube = new _objectsCube2['default']();
-    this.cube.position.set(0, 0, 0);
-
     /* CUBE EL */
     for (var m = 0; m < nbCubeEl; m++) {
       this.cubeEl = new _objectsCubeEl2['default']();
 
       if (m == 0) {
-        this.cubeEl.position.y = -200;
-        this.cubeEl.position.x = -200;
-        this.cubeEl.rotation.z = 0.28 * Math.PI;
+        this.cubeEl.position.y = -130;
+        this.cubeEl.position.x = 250;
+        this.cubeEl.rotation.z = 0.9 * Math.PI;
       } else if (m == 1) {
-        this.cubeEl.position.y = 100;
-        this.cubeEl.position.x = 100;
-        this.cubeEl.rotation.z = 0.28 * Math.PI;
+        this.cubeEl.position.y = 80;
+        this.cubeEl.position.x = -180;
+        this.cubeEl.rotation.z = -0.1 * Math.PI;
       }
 
       this.cubeEl.position.z = 0;
@@ -127,12 +115,12 @@ var Webgl = (function () {
       this.CubeElSecond = new _objectsCubeElSecond2['default']();
 
       if (h == 0) {
-        this.CubeElSecond.position.y = -150;
-        this.CubeElSecond.position.x = -250;
+        this.CubeElSecond.position.y = -140;
+        this.CubeElSecond.position.x = -200;
         this.CubeElSecond.rotation.z = 0.25 * Math.PI;
       } else if (h == 1) {
         this.CubeElSecond.position.y = 0;
-        this.CubeElSecond.position.x = 140;
+        this.CubeElSecond.position.x = 180;
         this.CubeElSecond.rotation.z = 0.25 * Math.PI;
       }
 
@@ -215,7 +203,15 @@ var Webgl = (function () {
     }
   }, {
     key: 'render',
-    value: function render(average, frequencys, isLaunch) {
+    value: function render(average, frequencys, isLaunch, audio) {
+      if (audio != null) {
+        average = audio.update();
+
+        if (average == null) {
+          audio = null;
+        }
+      }
+
       ts += 0.1;
       if (this.usePostprocessing) {
         this.composer.reset();
@@ -240,11 +236,11 @@ var Webgl = (function () {
       }
 
       if (ts % 50 < 0.1 && isLaunch == 1) {
-        leftLight.color.setHex(colors[iColorWave]);
-        rightLight.color.setHex(colors[iColorWave]);
+        leftLight.color.setHex(colorsWave[iColorWave]);
+        rightLight.color.setHex(colorsWave[iColorWave]);
         iColorWave++;
 
-        if (iColorWave == colors.length) {
+        if (iColorWave == colorsWave.length) {
           iColorWave = 0;
         }
       }
@@ -283,9 +279,11 @@ var Webgl = (function () {
         }
 
         if (isLaunch == 0) {
-          cubeElArray[q].geom.visible = false;
+          cubeElArray[q].visible = false;
+          cubeElArraySecond[q].visible = false;
         } else {
-          cubeElArray[q].geom.visible = true;
+          cubeElArray[q].visible = true;
+          cubeElArraySecond[q].visible = true;
         }
       }
 
@@ -307,10 +305,6 @@ var Webgl = (function () {
         this.plane.geom.verticesNeedUpdate = true;
       }
 
-      /* CUBE */
-      this.cube.rotation.x -= 0.01;
-      this.cube.rotation.y -= 0.01;
-
       /* PARTICLE ROTATION */
       this.particleSystem.rotation.y += 0.01;
       this.particleSystem.rotation.z += 0.01;
@@ -323,7 +317,7 @@ var Webgl = (function () {
 exports['default'] = Webgl;
 module.exports = exports['default'];
 
-},{"./objects/Cube":3,"./objects/CubeEl":4,"./objects/CubeElSecond":5,"./objects/Line":6,"./objects/Plane":7,"./objects/Sphere":8,"three":16}],2:[function(require,module,exports){
+},{"./objects/CubeEl":3,"./objects/CubeElSecond":4,"./objects/Line":5,"./objects/Plane":6,"./objects/Sphere":7,"three":15}],2:[function(require,module,exports){
 'use strict';
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
@@ -353,25 +347,32 @@ var webgl = undefined,
     average = undefined,
     isLaunch = 0,
     soundStarted = 0,
-    launcher = undefined,
-    inputFile = undefined;
+    defaultLaunch = undefined,
+    customLaunch = undefined,
+    begin = undefined,
+    formMusic = undefined,
+    inputFile = undefined,
+    audio = undefined,
+    file = undefined,
+    textIntro = undefined;
 
 (0, _domready2['default'])(function () {
-  // webgl settings
   webgl = new _Webgl2['default'](window.innerWidth, window.innerHeight);
   document.body.appendChild(webgl.renderer.domElement);
 
-  // GUI settings
-  // gui = new dat.GUI();
-  // gui.add(webgl, 'usePostprocessing');
-
   window.onresize = resizeHandler;
 
-  launcher = document.getElementById('launcher');
-  // inputFile = document.getElementById('file');
+  defaultLaunch = document.getElementById('default-music');
+  customLaunch = document.getElementById('custom-music');
+  begin = document.getElementById('begin');
+  formMusic = document.getElementById('form-music');
+  inputFile = document.getElementById('file');
+  textIntro = document.getElementById('text-intro');
 
-  launcher.addEventListener('click', launch);
-  // inputFile.addEventListener('change', handleFileSelect);
+  defaultLaunch.addEventListener('click', defaultMusicLaunch);
+  customLaunch.addEventListener('click', customMusicLaunch);
+
+  inputFile.addEventListener('change', handleFileSelect);
   animate();
 });
 
@@ -379,20 +380,22 @@ function resizeHandler() {
   webgl.resize(window.innerWidth, window.innerHeight);
 }
 
-// function addMusic () {
-
-// }
-
-function launch() {
+function defaultMusicLaunch() {
   setupAudioNodes();
   loadSound(pathSound);
+  audio = null;
   document.getElementById('container').classList.add('leave');
   isLaunch = 1;
 }
 
+function customMusicLaunch() {
+  begin.classList.add('leave');
+  formMusic.classList.add('inc');
+}
+
 function animate() {
   (0, _raf2['default'])(animate);
-  webgl.render(average, frequencys, isLaunch);
+  webgl.render(average, frequencys, isLaunch, audio);
 }
 
 if (!window.AudioContext) {
@@ -410,7 +413,6 @@ var context = new AudioContext(),
     javascriptNode = undefined;
 
 function loadSound(url) {
-  console.log('load');
   var request = new XMLHttpRequest();
   request.open('GET', url, true);
   request.responseType = 'arraybuffer';
@@ -457,7 +459,9 @@ function setupAudioNodes() {
     if (soundStarted == 1 && average == 0) {
       soundStarted = 0;
       document.getElementById('container').classList.remove('leave');
-      launcher.textContent = 'Retry the experiment';
+      begin.classList.remove('leave');
+      formMusic.classList.remove('inc');
+      textIntro.textContent = 'Retry the experiment';
       isLaunch = 0;
     }
   };
@@ -465,7 +469,7 @@ function setupAudioNodes() {
 
 function getAverageVolume(array) {
   var values = 0;
-  var average;
+  var average = undefined;
 
   var length = array.length;
   for (var i = 0; i < length; i++) {
@@ -477,69 +481,27 @@ function getAverageVolume(array) {
 }
 
 function handleFileSelect(evt) {
-  if (evt) {
-    evt.stopPropagation();
-    evt.preventDefault();
-    var files = evt.srcElement.files;
-  } else {
-    var files = document.getElementById('fileinput').files;
-  }
+  var files = evt.srcElement.files;
   var reader = new FileReader();
 
   if (files[0].type.match('audio.*')) {
-    console.log(evt.target.result);
+    reader.onload = (function (file) {
+      return function (e) {
+        audio = new Audio();
+        audio.loadSound(e.target.result);
+      };
+    })(files[0]);
+
+    isLaunch = 1;
+
+    reader.readAsArrayBuffer(files[0]);
   }
+
+  document.getElementById('container').classList.add('leave');
+  average = 0;
 }
 
-},{"./Webgl":1,"dat-gui":9,"domready":12,"gsap":13,"raf":14}],3:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, '__esModule', {
-  value: true
-});
-
-var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var _three = require('three');
-
-var _three2 = _interopRequireDefault(_three);
-
-var Cube = (function (_THREE$Object3D) {
-  _inherits(Cube, _THREE$Object3D);
-
-  function Cube() {
-    _classCallCheck(this, Cube);
-
-    _get(Object.getPrototypeOf(Cube.prototype), 'constructor', this).call(this);
-    this.count = 0;
-
-    this.geom = new _three2['default'].BoxGeometry(25, 25, 25);
-    this.mat = new _three2['default'].MeshBasicMaterial({ color: 0xf3f1ef });
-    this.mesh = new _three2['default'].Mesh(this.geom, this.mat);
-
-    this.add(this.mesh);
-  }
-
-  _createClass(Cube, [{
-    key: 'update',
-    value: function update(average, frequency) {}
-  }]);
-
-  return Cube;
-})(_three2['default'].Object3D);
-
-exports['default'] = Cube;
-module.exports = exports['default'];
-
-},{"three":16}],4:[function(require,module,exports){
+},{"./Webgl":1,"dat-gui":8,"domready":11,"gsap":12,"raf":13}],3:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -568,10 +530,12 @@ var CubeEl = (function (_THREE$Object3D) {
 
     _get(Object.getPrototypeOf(CubeEl.prototype), 'constructor', this).call(this);
     this.count = 0;
-    this.active = 0;
-    this.phase = 1;
+    this.activeTop = 0;
+    this.activeBot = 0;
+    this.phaseTop = 1;
+    this.phaseBot = 1;
 
-    this.geom = new _three2['default'].BoxGeometry(40, 4, 4);
+    this.geom = new _three2['default'].BoxGeometry(15, 4, 4);
     this.mat = new _three2['default'].MeshBasicMaterial({ color: 0xf3f1ef });
     this.mesh = new _three2['default'].Mesh(this.geom, this.mat);
 
@@ -581,40 +545,54 @@ var CubeEl = (function (_THREE$Object3D) {
   _createClass(CubeEl, [{
     key: 'update',
     value: function update(average, pos) {
+      if (average * 0.01 > 0.8 && average * 0.01 < 0.9) {
+        this.activeTop = 1;
+      }
+
       if (average * 0.01 > 1 && average * 0.01 < 1.1) {
-        this.active = 1;
+        this.activeBot = 1;
       }
 
-      if (pos == 'top' && this.phase == 2) {
-        pos = 'bot';
-      } else if (this.phase == 2) {
-        pos = 'top';
-      }
+      if (pos == 'top' && this.phaseTop == 1 && this.activeTop == 1 || pos == 'bot' && this.phaseBot == 2 && this.activeBot == 1) {
+        this.position.x -= 5;
+        this.position.y += 1;
 
-      if (pos == 'top' && this.active == 1) {
-        this.position.x += 5;
-        this.position.y += 5;
-
-        if (this.position.x == 100) {
+        if (this.position.x == -250) {
           this.active = 0;
 
-          if (this.phase == 2) {
-            this.phase = 1;
+          if (pos == 'top') {
+            if (this.phaseTop == 1) {
+              this.phaseTop = 2;
+            } else {
+              this.phaseTop = 1;
+            }
           } else {
-            this.phase = 2;
+            if (this.phaseBot == 2) {
+              this.phaseBot = 1;
+            } else {
+              this.phaseBot = 2;
+            }
           }
         }
-      } else if (pos == 'bot' && this.active == 1) {
-        this.position.x -= 5;
-        this.position.y -= 5;
+      } else if (pos == 'bot' && this.phaseBot && this.activeBot == 1 || pos == 'top' && this.phaseTop == 2 && this.activeTop == 1) {
+        this.position.x += 5;
+        this.position.y -= 1;
 
-        if (this.position.x == -200) {
+        if (this.position.x == 250) {
           this.active = 0;
 
-          if (this.phase == 2) {
-            this.phase = 1;
+          if (pos == 'top') {
+            if (this.phaseTop == 2) {
+              this.phaseTop = 1;
+            } else {
+              this.phaseTop = 2;
+            }
           } else {
-            this.phase = 2;
+            if (this.phaseBot == 1) {
+              this.phaseBot = 2;
+            } else {
+              this.phaseBot = 1;
+            }
           }
         }
       }
@@ -627,7 +605,7 @@ var CubeEl = (function (_THREE$Object3D) {
 exports['default'] = CubeEl;
 module.exports = exports['default'];
 
-},{"three":16}],5:[function(require,module,exports){
+},{"three":15}],4:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -656,8 +634,10 @@ var CubeElSecond = (function (_THREE$Object3D) {
 
     _get(Object.getPrototypeOf(CubeElSecond.prototype), 'constructor', this).call(this);
     this.count = 0;
-    this.active = 0;
-    this.phase = 1;
+    this.activeTop = 0;
+    this.activeBot = 0;
+    this.phaseTop = 1;
+    this.phaseBot = 1;
 
     this.geom = new _three2['default'].BoxGeometry(10, 4, 4);
     this.mat = new _three2['default'].MeshBasicMaterial({ color: 0xf3f1ef });
@@ -669,40 +649,56 @@ var CubeElSecond = (function (_THREE$Object3D) {
   _createClass(CubeElSecond, [{
     key: 'update',
     value: function update(average, pos) {
+
       if (average * 0.01 > 0.4 && average * 0.01 < 0.6) {
-        this.active = 1;
+        this.activeTop = 1;
+        console.log(average);
       }
 
-      if (pos == 'top' && this.phase == 2) {
-        pos = 'bot';
-      } else if (this.phase == 2) {
-        pos = 'top';
+      if (average * 0.01 > 0.6 && average * 0.01 < 0.7) {
+        this.activeBot = 1;
       }
 
-      if (pos == 'top' && this.active == 1) {
+      if (pos == 'top' && this.phaseTop == 1 && this.activeTop == 1 || pos == 'bot' && this.phaseBot == 2 && this.activeBot == 1) {
         this.position.x += 5;
         this.position.y += 5;
 
-        if (this.position.x == 140) {
+        if (this.position.x == 180) {
           this.active = 0;
 
-          if (this.phase == 2) {
-            this.phase = 1;
+          if (pos == 'top') {
+            if (this.phaseTop == 1) {
+              this.phaseTop = 2;
+            } else {
+              this.phaseTop = 1;
+            }
           } else {
-            this.phase = 2;
+            if (this.phaseBot == 2) {
+              this.phaseBot = 1;
+            } else {
+              this.phaseBot = 2;
+            }
           }
         }
-      } else if (pos == 'bot' && this.active == 1) {
+      } else if (pos == 'bot' && this.phaseBot && this.activeBot == 1 || pos == 'top' && this.phaseTop == 2 && this.activeTop == 1) {
         this.position.x -= 5;
         this.position.y -= 5;
 
-        if (this.position.x == -250) {
+        if (this.position.x == -280) {
           this.active = 0;
 
-          if (this.phase == 2) {
-            this.phase = 1;
+          if (pos == 'top') {
+            if (this.phaseTop == 2) {
+              this.phaseTop = 1;
+            } else {
+              this.phaseTop = 2;
+            }
           } else {
-            this.phase = 2;
+            if (this.phaseBot == 1) {
+              this.phaseBot = 2;
+            } else {
+              this.phaseBot = 1;
+            }
           }
         }
       }
@@ -715,7 +711,7 @@ var CubeElSecond = (function (_THREE$Object3D) {
 exports['default'] = CubeElSecond;
 module.exports = exports['default'];
 
-},{"three":16}],6:[function(require,module,exports){
+},{"three":15}],5:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -767,7 +763,7 @@ var Line = (function (_THREE$Object3D) {
 exports['default'] = Line;
 module.exports = exports['default'];
 
-},{"three":16}],7:[function(require,module,exports){
+},{"three":15}],6:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -816,7 +812,7 @@ var Cube = (function (_THREE$Object3D) {
 exports['default'] = Cube;
 module.exports = exports['default'];
 
-},{"three":16}],8:[function(require,module,exports){
+},{"three":15}],7:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -903,10 +899,10 @@ var Sphere = (function (_THREE$Object3D) {
 exports['default'] = Sphere;
 module.exports = exports['default'];
 
-},{"three":16}],9:[function(require,module,exports){
+},{"three":15}],8:[function(require,module,exports){
 module.exports = require('./vendor/dat.gui')
 module.exports.color = require('./vendor/dat.color')
-},{"./vendor/dat.color":10,"./vendor/dat.gui":11}],10:[function(require,module,exports){
+},{"./vendor/dat.color":9,"./vendor/dat.gui":10}],9:[function(require,module,exports){
 /**
  * dat-gui JavaScript Controller Library
  * http://code.google.com/p/dat-gui
@@ -1662,7 +1658,7 @@ dat.color.math = (function () {
 })(),
 dat.color.toString,
 dat.utils.common);
-},{}],11:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 /**
  * dat-gui JavaScript Controller Library
  * http://code.google.com/p/dat-gui
@@ -5323,7 +5319,7 @@ dat.dom.CenteredDiv = (function (dom, common) {
 dat.utils.common),
 dat.dom.dom,
 dat.utils.common);
-},{}],12:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 /*!
   * domready (c) Dustin Diaz 2014 - License MIT
   */
@@ -5355,7 +5351,7 @@ dat.utils.common);
 
 });
 
-},{}],13:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 (function (global){
 /*!
  * VERSION: 1.18.0
@@ -12930,7 +12926,7 @@ if (_gsScope._gsDefine) { _gsScope._gsQueue.pop()(); } //necessary in case Tween
 
 })((typeof(module) !== "undefined" && module.exports && typeof(global) !== "undefined") ? global : this || window, "TweenMax");
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],14:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 var now = require('performance-now')
   , global = typeof window === 'undefined' ? {} : window
   , vendors = ['moz', 'webkit']
@@ -13000,7 +12996,7 @@ module.exports.cancel = function() {
   caf.apply(global, arguments)
 }
 
-},{"performance-now":15}],15:[function(require,module,exports){
+},{"performance-now":14}],14:[function(require,module,exports){
 (function (process){
 // Generated by CoffeeScript 1.7.1
 (function() {
@@ -13036,7 +13032,7 @@ module.exports.cancel = function() {
 }).call(this);
 
 }).call(this,require('_process'))
-},{"_process":17}],16:[function(require,module,exports){
+},{"_process":16}],15:[function(require,module,exports){
 var self = self || {};// File:src/Three.js
 
 /**
@@ -48184,7 +48180,7 @@ if (typeof exports !== 'undefined') {
   this['THREE'] = THREE;
 }
 
-},{}],17:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};

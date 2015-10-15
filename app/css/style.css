@@ -24,37 +24,79 @@ body, html {
 
 	#container.leave {
 		opacity: 0;
-		transform: translatey(-100%);
+		transform: translateY(-100%);
 	}
 
 		#container > div {
 			width: 100%;
 		}
 
-		#container h1 {
-			text-align: center;
-			color: #fff;
-			font-size: 40px;
-		}
-
-		#container button {
-			width: 280px;
-			margin: auto;
-			border: 1px solid #fff;
-			padding: 10px 20px;
-			text-align: center;
-			text-transform: uppercase;
-			color: #1C448E;
-			background: #fff;
-			cursor: pointer;
-			font-size: 15px;
-			line-height: 1.5;
-			display: block;
-			font-family: 'Lato';
-			transition: all 0.4s ease-in-out;
-		}
-
-			#container button:hover {
-				background: #1C448E;
+			#container > div p {
+				text-align: center;
 				color: #fff;
+				font-size: 20px;
+				margin: 10px 0 40px;
 			}
+
+		#container #begin,
+		#container #form-music {
+			transition: all 0.6s ease-in-out;
+		}
+
+		#container #begin.leave {
+			transform: translateX(100%);
+		}
+
+		#container #form-music {
+			transform: translateX(-100%);
+			position: relative;
+			top: -130px;
+		}
+
+		#container #form-music input {
+			width: 195px;
+			margin: auto;
+			display: block;
+		}
+
+			#container #form-music.inc {
+				transform: translateX(0);
+			}
+
+			#container h1 {
+				text-align: center;
+				color: #fff;
+				font-size: 40px;
+				margin: 0;
+			}
+
+			#container #begin > div {
+				width: 500px;
+				margin: auto;
+			}
+
+			#container button {
+				width: 240px;
+				border: 1px solid #fff;
+				padding: 10px 20px;
+				text-align: center;
+				text-transform: uppercase;
+				color: #1C448E;
+				background: #fff;
+				cursor: pointer;
+				font-size: 15px;
+				line-height: 1.5;
+				display: inline-block;
+				vertical-align: middle;
+				font-family: 'Lato';
+				transition: all 0.4s ease-in-out;
+			}
+
+				#container button:first-child {
+					margin-right: 15px;
+				}
+
+				#container button:hover {
+					background: #1C448E;
+					color: #fff;
+				}

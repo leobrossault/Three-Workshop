@@ -1,6 +1,5 @@
 'use strict';
 
-import Cube from './objects/Cube';
 import CubeEl from './objects/CubeEl';
 import CubeElSecond from './objects/CubeElSecond';
 import Sphere from './objects/Sphere';
@@ -19,6 +18,7 @@ var centerLight,
     cubeElArraySecond = [],
     ts = 0,
     colors = [0x1C448E, 0x3E92CC, 0xE8D7F1, 0xFFAD05, 0xDB162F],
+    colorsWave = [0xd7e2f1, 0xd7f1e0, 0xE8D7F1, 0xf1e6d7, 0xf1d7d9],
     iColor = 0,
     controls,
     particleCount = 1800,
@@ -46,11 +46,6 @@ export default class Webgl {
 
     rightLight = new THREE.PointLight( 0xffffff, 1, 200 );
     rightLight.position.set(50, -30, 0);
-    // centerLight = new THREE.HemisphereLight( 0xf55779, 0xf55779, 0.6 );
-    // centerLight.color.setHSL( 0.6, 1, 0.6 );
-    // centerLight.groundColor.setHSL( 0.095, 1, 0.75 );
-    // centerLight.position.set( 0, 500, 0 );
-    // this.scene.add( centerLight );
 
     this.scene.add(leftLight);
     this.scene.add(rightLight);
@@ -65,22 +60,19 @@ export default class Webgl {
     this.composer.setSize(width, height);
     this.initPostprocessing();
 
-    /* CUBE CENTER */
-    this.cube = new Cube();
-    this.cube.position.set(0, 0 , 0);
 
     /* CUBE EL */
     for (var m = 0; m < nbCubeEl; m ++) {
       this.cubeEl = new CubeEl();
 
       if (m == 0) {
-        this.cubeEl.position.y = -200;
-        this.cubeEl.position.x = -200;
-        this.cubeEl.rotation.z = 0.28 * Math.PI;    
+        this.cubeEl.position.y = -130;
+        this.cubeEl.position.x = 250;
+        this.cubeEl.rotation.z = 0.9 * Math.PI;    
       } else if (m == 1) {
-        this.cubeEl.position.y = 100;
-        this.cubeEl.position.x = 100;
-        this.cubeEl.rotation.z = 0.28 * Math.PI;     
+        this.cubeEl.position.y = 80;
+        this.cubeEl.position.x = -180;
+        this.cubeEl.rotation.z = -0.1 * Math.PI;     
       }
 
       this.cubeEl.position.z = 0;  
@@ -95,12 +87,12 @@ export default class Webgl {
       this.CubeElSecond = new CubeElSecond();
 
       if (h == 0) {
-        this.CubeElSecond.position.y = -150;
-        this.CubeElSecond.position.x = -250;
+        this.CubeElSecond.position.y = -140;
+        this.CubeElSecond.position.x = -200;
         this.CubeElSecond.rotation.z = 0.25 * Math.PI;    
       } else if (h == 1) {
         this.CubeElSecond.position.y = 0;
-        this.CubeElSecond.position.x = 140;
+        this.CubeElSecond.position.x = 180;
         this.CubeElSecond.rotation.z = 0.25 * Math.PI;     
       }
 
@@ -183,7 +175,15 @@ export default class Webgl {
     this.renderer.setSize(width, height);
   };
 
-  render(average, frequencys, isLaunch) {
+  render(average, frequencys, isLaunch, audio) {
+    if (audio != null) {
+      average = audio.update ();
+
+      if (average == null) {
+        audio = null;
+      }
+    }  
+
     ts += 0.1;
     if (this.usePostprocessing) {
       this.composer.reset();
@@ -208,11 +208,11 @@ export default class Webgl {
     }
     
     if (ts % 50 < 0.1 && isLaunch == 1) {
-        leftLight.color.setHex (colors[iColorWave]);
-        rightLight.color.setHex (colors[iColorWave]);
+        leftLight.color.setHex (colorsWave[iColorWave]);
+        rightLight.color.setHex (colorsWave[iColorWave]);
         iColorWave ++;
 
-        if (iColorWave == colors.length) {
+        if (iColorWave == colorsWave.length) {
           iColorWave = 0;
         }
     }
@@ -240,7 +240,6 @@ export default class Webgl {
       }
     }
 
-
     /* ELEMENT TRANSLATION */
     for (var q = 0; q < nbCubeEl; q ++) {
       if (q == 0) {
@@ -252,9 +251,11 @@ export default class Webgl {
       }
 
       if (isLaunch == 0) {
-        cubeElArray[q].geom.visible = false;
+        cubeElArray[q].visible = false;
+        cubeElArraySecond[q].visible = false;
       } else {
-        cubeElArray[q].geom.visible = true;
+        cubeElArray[q].visible = true;
+        cubeElArraySecond[q].visible = true;
       }
     }
 
@@ -276,9 +277,6 @@ export default class Webgl {
       this.plane.geom.verticesNeedUpdate = true;
     }
 
-    /* CUBE */
-    this.cube.rotation.x -= 0.01;
-    this.cube.rotation.y -= 0.01;
 
     /* PARTICLE ROTATION */
     this.particleSystem.rotation.y += 0.01;

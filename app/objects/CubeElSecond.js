@@ -8,8 +8,10 @@ export default class CubeElSecond extends THREE.Object3D {
   constructor() {
     super();
     this.count = 0;
-    this.active = 0;
-    this.phase = 1;
+    this.activeTop = 0;
+    this.activeBot = 0;
+    this.phaseTop = 1;
+    this.phaseBot = 1;
 
     this.geom = new THREE.BoxGeometry( 10 , 4, 4 );
     this.mat = new THREE.MeshBasicMaterial({color: 0xf3f1ef});
@@ -19,40 +21,56 @@ export default class CubeElSecond extends THREE.Object3D {
   }
 
   update (average, pos) {
+
     if (average * 0.01 > 0.4 && average * 0.01 < 0.6 ) {
-      this.active = 1;
+      this.activeTop = 1;
+      console.log(average);
     }
 
-    if (pos == 'top' && this.phase == 2) {
-      pos = 'bot';
-    } else if (this.phase == 2) {
-      pos = 'top';
+    if (average * 0.01 > 0.6 && average * 0.01 < 0.7 ) {
+      this.activeBot = 1;
     }
 
-    if (pos == 'top' && this.active == 1) {
+    if (pos == 'top' && this.phaseTop == 1 && this.activeTop == 1 || pos == 'bot' && this.phaseBot == 2 && this.activeBot == 1) {
       this.position.x += 5;
       this.position.y += 5;
 
-      if (this.position.x == 140) {
+      if (this.position.x == 180) {
           this.active = 0;
 
-          if (this.phase == 2) {
-            this.phase = 1;
+          if (pos == 'top') {
+            if (this.phaseTop == 1) {
+              this.phaseTop = 2;
+            } else {
+              this.phaseTop = 1;
+            }
           } else {
-            this.phase = 2;
+            if (this.phaseBot == 2) {
+              this.phaseBot = 1;
+            } else {
+              this.phaseBot = 2;
+            }
           }
       }
-    } else if (pos == 'bot' &&  this.active == 1) {
+    } else if (pos == 'bot' && this.phaseBot &&  this.activeBot == 1 || pos == 'top' && this.phaseTop == 2 && this.activeTop == 1) {
       this.position.x -= 5;
       this.position.y -= 5;
 
-      if (this.position.x == -250) {
+      if (this.position.x == -280) {
           this.active = 0;
 
-          if (this.phase == 2) {
-            this.phase = 1;
+          if (pos == 'top') {
+            if (this.phaseTop == 2) {
+              this.phaseTop = 1;
+            } else {
+              this.phaseTop = 2;
+            }
           } else {
-            this.phase = 2;
+            if (this.phaseBot == 1) {
+              this.phaseBot = 2;
+            } else {
+              this.phaseBot = 1;
+            }
           }
       }
     }

@@ -3,7 +3,7 @@
 import domready from 'domready';
 import Webgl from './Webgl';
 import raf from 'raf';
-import dat from 'dat-gui';
+import dat from 'dat-gui'; 
 import 'gsap';
 
 let webgl,
@@ -13,25 +13,32 @@ let webgl,
     average,
     isLaunch = 0,
     soundStarted = 0,
-    launcher,
-    inputFile;
+    defaultLaunch,
+    customLaunch,
+    begin,
+    formMusic,
+    inputFile,
+    audio,
+    file,
+    textIntro;
 
 domready(() => {
-  // webgl settings
   webgl = new Webgl(window.innerWidth, window.innerHeight);
   document.body.appendChild(webgl.renderer.domElement);
 
-  // GUI settings
-  // gui = new dat.GUI();
-  // gui.add(webgl, 'usePostprocessing');
-
   window.onresize = resizeHandler;
 
-  launcher = document.getElementById('launcher');
-  // inputFile = document.getElementById('file');
+  defaultLaunch = document.getElementById('default-music');
+  customLaunch = document.getElementById('custom-music');
+  begin = document.getElementById('begin');
+  formMusic = document.getElementById('form-music');
+  inputFile = document.getElementById('file');
+  textIntro = document.getElementById('text-intro');
 
-  launcher.addEventListener('click', launch);
-  // inputFile.addEventListener('change', handleFileSelect);
+  defaultLaunch.addEventListener('click', defaultMusicLaunch);
+  customLaunch.addEventListener('click', customMusicLaunch);
+
+  inputFile.addEventListener('change', handleFileSelect);
   animate ();
 });
 
@@ -39,20 +46,22 @@ function resizeHandler () {
   webgl.resize(window.innerWidth, window.innerHeight);
 }
 
-// function addMusic () {
-
-// }
-
-function launch () {
+function defaultMusicLaunch () {
   setupAudioNodes();
   loadSound(pathSound);
+  audio = null;
   document.getElementById('container').classList.add('leave');
   isLaunch = 1;
 }
 
+function customMusicLaunch () {
+  begin.classList.add('leave');
+  formMusic.classList.add('inc');
+}
+
 function animate () {
   raf(animate);
-  webgl.render(average, frequencys, isLaunch);
+  webgl.render(average, frequencys, isLaunch, audio);
 }
 
 
@@ -71,8 +80,7 @@ let context = new AudioContext(),
     javascriptNode;
 
 function loadSound (url) {
-  console.log('load');
-    var request = new XMLHttpRequest();
+    let request = new XMLHttpRequest();
     request.open('GET', url, true);
     request.responseType = 'arraybuffer';
    
@@ -107,7 +115,7 @@ function setupAudioNodes () {
     sourceNode.connect(context.destination);
 
     javascriptNode.onaudioprocess = function() {
-      var array =  new Uint8Array(analyser.frequencyBinCount);
+      let array =  new Uint8Array(analyser.frequencyBinCount);
       analyser.getByteFrequencyData(array);
       average = getAverageVolume(array);
       frequencys = array;
@@ -119,7 +127,9 @@ function setupAudioNodes () {
       if (soundStarted == 1 && average == 0) {
         soundStarted = 0;
         document.getElementById('container').classList.remove('leave');
-        launcher.textContent = 'Retry the experiment';
+        begin.classList.remove('leave');
+        formMusic.classList.remove('inc');
+        textIntro.textContent = 'Retry the experiment';
         isLaunch = 0;
       }
     }
@@ -127,11 +137,11 @@ function setupAudioNodes () {
 
    
 function getAverageVolume (array) {
-    var values = 0;
-    var average;
+    let values = 0;
+    let average;
    
-    var length = array.length;
-    for (var i = 0; i < length; i++) {
+    let length = array.length;
+    for (let i = 0; i < length; i++) {
         values += array[i];
     }
    
@@ -140,18 +150,24 @@ function getAverageVolume (array) {
 }
 
 function handleFileSelect (evt) {
-    if (evt) {
-      evt.stopPropagation();
-      evt.preventDefault();
-      var files = evt.srcElement.files;
-    } else {
-      var files = document.getElementById('fileinput').files;
-    }
-    var reader = new FileReader();
+    let files = evt.srcElement.files;
+    let reader = new FileReader();
 
     if (files[0].type.match('audio.*')) {
-      console.log(evt.target.result);
+      reader.onload = (function(file) {
+        return function (e) {
+          audio = new Audio();
+          audio.loadSound(e.target.result);
+        }
+      })(files[0]);
+
+      isLaunch = 1;
+
+      reader.readAsArrayBuffer(files[0]);
     }
+
+    document.getElementById('container').classList.add('leave');
+    average = 0;
 }
 
  
