@@ -5,7 +5,7 @@ var soundStarted = 0,
 	countEnd = 0,
 	oldAverage = 0,
 	textIntro = document.getElementById('text-intro'),
-	customLaunch = document.getElementById('custom-music');
+	isEnded = 0;
 
 function Audio() {
 	this.analyserNode;
@@ -52,7 +52,10 @@ Audio.prototype.update = function() {
 	if (this.analyserNode == undefined) {
 		return 0;
 	} else {
-		isLaunch = 1;
+		if (isEnded == 0) {
+			isLaunch = 1;
+		}
+		
 		this.analyserNode.getByteFrequencyData(this.frequencyData);
 		var averageAudio = 0;
 		var values = 0;
@@ -62,29 +65,30 @@ Audio.prototype.update = function() {
 			values += this.frequencyData[i];
 		};
 
-		if (countEnd <= 100) {
+
+		if (countEnd <= 100 && isLaunch == 1) {
 			averageAudio = values / frequencyLength;
 		}	
 
-		console.log(oldAverage+' / '+averageAudio)
-		if (oldAverage == averageAudio && soundStarted == 1) {
+		if (oldAverage == averageAudio && soundStarted == 1 && isEnded == 0) {
 			countEnd ++;
+		}
 
-			if (countEnd >= 5 && averageAudio == 0) {
-				soundStarted = 0;
-				document.getElementById('container').classList.remove('leave');
-				document.getElementById('begin').classList.remove('leave');
-	        	document.getElementById('form-music').classList.remove('inc');
-				textIntro.textContent = 'Retry the experiment';
-				isLaunch = 0;
-				averageAudio = null;
-			}
+		if (countEnd >= 5 && averageAudio == 0 && soundStarted == 1 && isEnded == 0) {
+			soundStarted = 0;
+			document.getElementById('container').classList.remove('leave');
+			document.getElementById('begin').classList.remove('leave');
+	        document.getElementById('form-music').classList.remove('inc');
+			textIntro.textContent = 'Retry the experiment';
+			isLaunch = 0;
+			averageAudio = null;
+			isEnded = 1;
+			countEnd = 0;
 		}
 
 		oldAverage = averageAudio;
-
-	
-		if (averageAudio != 0) {
+		
+		if (averageAudio != 0 && averageAudio != null) {	
 	    	soundStarted = 1;
 	    }
 

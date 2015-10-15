@@ -66,7 +66,7 @@ var Webgl = (function () {
     this.camera.position.y = 100;
     this.camera.lookAt(new _three2['default'].Vector3(0, 0, 0));
 
-    this.controls = new _three2['default'].OrbitControls(this.camera);
+    // this.controls = new THREE.OrbitControls(this.camera);
 
     centerLight = new _three2['default'].PointLight(0xffffff, 1, 50);
     centerLight.position.set(0, -30, 0);
@@ -135,9 +135,9 @@ var Webgl = (function () {
       this.sphere = new _objectsSphere2['default']();
 
       if (j == 0) {
-        this.sphere.position.x = width / 20;
+        this.sphere.position.x = -100;
       } else if (j == 1) {
-        this.sphere.position.x = -width / 20;
+        this.sphere.position.x = 100;
       }
 
       objects.push(this.sphere);
@@ -205,10 +205,10 @@ var Webgl = (function () {
     key: 'render',
     value: function render(average, frequencys, isLaunch, audio) {
       if (audio != null) {
-        average = audio.update();
-
         if (average == null) {
           audio = null;
+        } else {
+          average = audio.update();
         }
       }
 
@@ -354,7 +354,8 @@ var webgl = undefined,
     inputFile = undefined,
     audio = undefined,
     file = undefined,
-    textIntro = undefined;
+    textIntro = undefined,
+    musicLabel = undefined;
 
 (0, _domready2['default'])(function () {
   webgl = new _Webgl2['default'](window.innerWidth, window.innerHeight);
@@ -368,6 +369,7 @@ var webgl = undefined,
   formMusic = document.getElementById('form-music');
   inputFile = document.getElementById('file');
   textIntro = document.getElementById('text-intro');
+  musicLabel = document.getElementById('music-name');
 
   defaultLaunch.addEventListener('click', defaultMusicLaunch);
   customLaunch.addEventListener('click', customMusicLaunch);
@@ -386,6 +388,7 @@ function defaultMusicLaunch() {
   audio = null;
   document.getElementById('container').classList.add('leave');
   isLaunch = 1;
+  musicLabel.textContent = 'Fakear_Neptune.mp3';
 }
 
 function customMusicLaunch() {
@@ -492,6 +495,8 @@ function handleFileSelect(evt) {
       };
     })(files[0]);
 
+    musicLabel.textContent = files[0].name;
+
     isLaunch = 1;
 
     reader.readAsArrayBuffer(files[0]);
@@ -545,7 +550,7 @@ var CubeEl = (function (_THREE$Object3D) {
   _createClass(CubeEl, [{
     key: 'update',
     value: function update(average, pos) {
-      if (average * 0.01 > 0.8 && average * 0.01 < 0.9) {
+      if (average * 0.01 > 0.9 && average * 0.01 < 1) {
         this.activeTop = 1;
       }
 
@@ -558,7 +563,8 @@ var CubeEl = (function (_THREE$Object3D) {
         this.position.y += 1;
 
         if (this.position.x == -250) {
-          this.active = 0;
+          this.activeTop = 0;
+          this.activeBot = 0;
 
           if (pos == 'top') {
             if (this.phaseTop == 1) {
@@ -579,7 +585,8 @@ var CubeEl = (function (_THREE$Object3D) {
         this.position.y -= 1;
 
         if (this.position.x == 250) {
-          this.active = 0;
+          this.activeTop = 0;
+          this.activeBot = 0;
 
           if (pos == 'top') {
             if (this.phaseTop == 2) {
@@ -650,9 +657,8 @@ var CubeElSecond = (function (_THREE$Object3D) {
     key: 'update',
     value: function update(average, pos) {
 
-      if (average * 0.01 > 0.4 && average * 0.01 < 0.6) {
+      if (average * 0.01 > 0.4 && average * 0.01 < 0.5) {
         this.activeTop = 1;
-        console.log(average);
       }
 
       if (average * 0.01 > 0.6 && average * 0.01 < 0.7) {
@@ -664,7 +670,9 @@ var CubeElSecond = (function (_THREE$Object3D) {
         this.position.y += 5;
 
         if (this.position.x == 180) {
-          this.active = 0;
+
+          this.activeTop = 0;
+          this.activeBot = 0;
 
           if (pos == 'top') {
             if (this.phaseTop == 1) {
@@ -685,7 +693,8 @@ var CubeElSecond = (function (_THREE$Object3D) {
         this.position.y -= 5;
 
         if (this.position.x == -280) {
-          this.active = 0;
+          this.activeBot = 0;
+          this.activeTop = 0;
 
           if (pos == 'top') {
             if (this.phaseTop == 2) {

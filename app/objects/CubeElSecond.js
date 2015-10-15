@@ -22,9 +22,8 @@ export default class CubeElSecond extends THREE.Object3D {
 
   update (average, pos) {
 
-    if (average * 0.01 > 0.4 && average * 0.01 < 0.6 ) {
+    if (average * 0.01 > 0.4 && average * 0.01 < 0.5 ) {
       this.activeTop = 1;
-      console.log(average);
     }
 
     if (average * 0.01 > 0.6 && average * 0.01 < 0.7 ) {
@@ -36,7 +35,9 @@ export default class CubeElSecond extends THREE.Object3D {
       this.position.y += 5;
 
       if (this.position.x == 180) {
-          this.active = 0;
+
+          this.activeTop = 0;
+          this.activeBot = 0;
 
           if (pos == 'top') {
             if (this.phaseTop == 1) {
@@ -57,7 +58,8 @@ export default class CubeElSecond extends THREE.Object3D {
       this.position.y -= 5;
 
       if (this.position.x == -280) {
-          this.active = 0;
+          this.activeBot = 0;
+          this.activeTop = 0;
 
           if (pos == 'top') {
             if (this.phaseTop == 2) {

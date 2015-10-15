@@ -35,7 +35,7 @@ export default class Webgl {
     this.camera.position.y = 100;
     this.camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-    this.controls = new THREE.OrbitControls(this.camera);
+    // this.controls = new THREE.OrbitControls(this.camera);
 
 
     centerLight = new THREE.PointLight( 0xffffff, 1, 50 );
@@ -108,9 +108,9 @@ export default class Webgl {
       this.sphere = new Sphere();
 
       if (j == 0) {
-        this.sphere.position.x = width / 20;
+        this.sphere.position.x = -100;
       } else if (j == 1) {
-        this.sphere.position.x = -width / 20;
+        this.sphere.position.x = 100;
       }
     
       objects.push(this.sphere);
@@ -177,10 +177,10 @@ export default class Webgl {
 
   render(average, frequencys, isLaunch, audio) {
     if (audio != null) {
-      average = audio.update ();
-
       if (average == null) {
         audio = null;
+      } else {
+        average = audio.update ();
       }
     }  
 

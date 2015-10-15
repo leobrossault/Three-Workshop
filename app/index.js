@@ -20,7 +20,8 @@ let webgl,
     inputFile,
     audio,
     file,
-    textIntro;
+    textIntro,
+    musicLabel;
 
 domready(() => {
   webgl = new Webgl(window.innerWidth, window.innerHeight);
@@ -34,6 +35,7 @@ domready(() => {
   formMusic = document.getElementById('form-music');
   inputFile = document.getElementById('file');
   textIntro = document.getElementById('text-intro');
+  musicLabel = document.getElementById('music-name');
 
   defaultLaunch.addEventListener('click', defaultMusicLaunch);
   customLaunch.addEventListener('click', customMusicLaunch);
@@ -52,6 +54,7 @@ function defaultMusicLaunch () {
   audio = null;
   document.getElementById('container').classList.add('leave');
   isLaunch = 1;
+  musicLabel.textContent = 'Fakear_Neptune.mp3';
 }
 
 function customMusicLaunch () {
@@ -160,6 +163,8 @@ function handleFileSelect (evt) {
           audio.loadSound(e.target.result);
         }
       })(files[0]);
+
+      musicLabel.textContent = files[0].name;
 
       isLaunch = 1;
 

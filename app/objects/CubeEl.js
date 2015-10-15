@@ -21,7 +21,7 @@ export default class CubeEl extends THREE.Object3D {
   }
 
   update(average, pos) {
-    if (average * 0.01 > 0.8 && average * 0.01 < 0.9 ) {
+    if (average * 0.01 > 0.9 && average * 0.01 < 1 ) {
       this.activeTop = 1;
     }
 
@@ -35,7 +35,8 @@ export default class CubeEl extends THREE.Object3D {
       this.position.y += 1;
 
       if (this.position.x == -250) {
-          this.active = 0;
+          this.activeTop = 0;
+          this.activeBot = 0;
 
           if (pos == 'top') {
             if (this.phaseTop == 1) {
@@ -56,7 +57,8 @@ export default class CubeEl extends THREE.Object3D {
       this.position.y -= 1;
 
       if (this.position.x == 250) {
-          this.active = 0;
+          this.activeTop = 0;
+          this.activeBot = 0;
 
           if (pos == 'top') {
             if (this.phaseTop == 2) {

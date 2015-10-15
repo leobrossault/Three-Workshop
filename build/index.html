@@ -7,23 +7,17 @@
   <link rel="stylesheet" type="text/css" href="app/css/style.css">
 </head>
 <body>
-  <p id="music-name"></p>
   <div id="container">
     <div>
       <div id="begin">
         <h1>Three JS Experiment</h1>
-        <p id="text-intro">Make your choice</p>
-        <div>
-          <button id="custom-music">Play my music</button>
-          <button id="default-music">I don't have a music</button>
-        </div>
-        <p>By Leo Brossault</p>
+        <button id="launcher">Begin the experiment</button>
       </div>
 
-      <div id="form-music">
+<!--       <div id="form-music">
         <p>Add your music please</p>
         <input type="file" id="file" name="files[]" multiple>
-      </div>
+      </div> -->
     </div>
   </div>
 
@@ -250,7 +244,6 @@
         gl_FragColor = vec4( color.rgb, 1.0 );
     }
   </script>
-  <script src="app/audio.js"></script>
   <script src="./build/main.js"></script>
   <script src="app/OrbitControls.js"></script>
   <script src="./build/vendors/wagner/Wagner.js"></script>

@@ -9,6 +9,14 @@ body, html {
 	font-family: 'Lato';
 }
 
+	#music-name {
+		position: absolute;
+		top: 10px;
+		left: 40px;
+		z-index: 1;
+		color: #fff;
+	}
+
 	#container {
 		position: absolute;
 		top: 0;
@@ -36,6 +44,11 @@ body, html {
 				color: #fff;
 				font-size: 20px;
 				margin: 10px 0 40px;
+			}
+
+			#container > div p:last-child {
+				margin-top: 50px;
+				font-size: 13px;
 			}
 
 		#container #begin,
