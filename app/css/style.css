@@ -84,14 +84,14 @@ body, html {
 			}
 
 			#container #begin > div {
-				width: 500px;
+				width: 400px;
 				margin: auto;
 			}
 
 			#container button {
-				width: 240px;
+				width: 190px;
 				border: 1px solid #fff;
-				padding: 10px 20px;
+				padding: 6px 10px;
 				text-align: center;
 				text-transform: uppercase;
 				color: #1C448E;

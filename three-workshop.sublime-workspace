@@ -4,6 +4,30 @@
 		"selected_items":
 		[
 			[
+				"re",
+				"return"
+			],
+			[
+				"is",
+				"isEnded"
+			],
+			[
+				"coun",
+				"countStart"
+			],
+			[
+				"count",
+				"countEnd"
+			],
+			[
+				"cou",
+				"countEnd"
+			],
+			[
+				"sou",
+				"soundStarted"
+			],
+			[
 				"lo",
 				"loadingComplete"
 			],
@@ -106,10 +130,6 @@
 			[
 				"he",
 				"wHeight"
-			],
-			[
-				"re",
-				"relative"
 			],
 			[
 				"border",
@@ -494,31 +514,35 @@
 			[
 				"conju",
 				"conjugVar"
-			],
-			[
-				"gra",
-				"grammaireVar"
-			],
-			[
-				"SUBJECT",
-				"subject"
-			],
-			[
-				"teah",
-				"teacher"
-			],
-			[
-				"code",
-				"codeUrl"
-			],
-			[
-				"box",
-				"box	CSS - box-sizing: border-box;"
 			]
 		]
 	},
 	"buffers":
 	[
+		{
+			"file": "app/Webgl.js",
+			"settings":
+			{
+				"buffer_size": 7516,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "app/audio.js",
+			"settings":
+			{
+				"buffer_size": 2483,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "app/index.js",
+			"settings":
+			{
+				"buffer_size": 4292,
+				"line_ending": "Unix"
+			}
+		}
 	],
 	"build_system": "",
 	"build_system_choices":
@@ -579,6 +603,12 @@
 		"side_bar_visible": false,
 		"status_bar_visible": false
 	},
+	"expanded_folders":
+	[
+		"/Users/leobrossault/Documents/Projects/Three-Workshop",
+		"/Users/leobrossault/Documents/Projects/Three-Workshop/app",
+		"/Users/leobrossault/Documents/Projects/Three-Workshop/app/objects"
+	],
 	"file_history":
 	[
 		"/Users/leobrossault/Documents/Sublime Projects/three-workshop.sublime-project",
@@ -874,8 +904,98 @@
 	"groups":
 	[
 		{
+			"selected": 1,
 			"sheets":
 			[
+				{
+					"buffer": 0,
+					"file": "app/Webgl.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 7516,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1944,
+								1944
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1336.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "app/audio.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2483,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1907,
+								1907
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 674.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "app/index.js",
+					"semi_transient": true,
+					"settings":
+					{
+						"buffer_size": 4292,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3599,
+								3599
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2018.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				}
 			]
 		}
 	],
@@ -942,7 +1062,7 @@
 		[
 			[
 				"",
-				"~/Documents/Projects/Three-Workshop/three-workshop.sublime-workspace"
+				"~/Documents/Sublime Projects/crma-experiment.sublime-project"
 			]
 		],
 		"width": 380.0
